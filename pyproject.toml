@@ -1,0 +1,27 @@
+[tool.black]
+# keep in sync with tox.ini
+line-length = 88
+target-version = [ "py36" ]
+include = '\.pyi?$'
+exclude = '''
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | \.ipynb_checkpoints
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+)
+'''
+
+[tool.isort]
+profile = "black"
+directory = ["mcs_tools"]
+skip_glob = "mcs_tools/.ipynb_checkpoints/*"
