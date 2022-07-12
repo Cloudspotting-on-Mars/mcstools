@@ -1,12 +1,12 @@
-#from setuptools import setup
-from distutils.core import setup
+from setuptools import find_packages, setup
 
 setup(
     name='mcstools',
     version='0.1.0',
     author='Marek Slipski',
     author_email='marek.slipski@gmail.com',
-    packages=['mcstools'],
+    packages=find_packages(),
+    package_dir={'':'mcstools'},
     #url='http://pypi.python.org/pypi/PackageName/',
     license='LICENSE',
     description='Package to read MCS data',
