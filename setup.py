@@ -2,17 +2,17 @@
 from distutils.core import setup
 
 setup(
-    name='mcs-tools',
+    name='mcstools',
     version='0.1.0',
     author='Marek Slipski',
     author_email='marek.slipski@gmail.com',
-    packages=['mcs-tools'],
+    packages=['mcstools'],
     #url='http://pypi.python.org/pypi/PackageName/',
     license='LICENSE',
     description='Package to read MCS data',
     long_description=open('README.md').read(),
     install_requires=[
-        "black==22.6.0",
+        "black==19.10b",
         "dask==2022.6.1",
         "distributed==2022.6.1",
         "flake8==4.0.1",
