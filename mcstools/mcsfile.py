@@ -513,7 +513,6 @@ class MCSL22DFile(MCSFile):
     ddr2_dtypes["1"] = int
     data_records["DDR2"]["dtypes"] = ddr2_dtypes
 
-
     def __init__(self, pds=False):
         super().__init__()
         if pds:

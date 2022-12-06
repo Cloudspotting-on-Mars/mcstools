@@ -1,13 +1,12 @@
 import datetime as dt
 import os
-import requests
 
 import numpy as np
 import pandas as pd
-
+import requests
 from mcsfile import MCSL1BFile, MCSL22DFile
-from util.time import GDS_DATE_FMT, PDS_DATE_FMT, add_datetime_column
 from util.log import logger
+from util.time import GDS_DATE_FMT, PDS_DATE_FMT, add_datetime_column
 
 
 class MCSReader:
@@ -121,7 +120,9 @@ class MCSL22DReader(MCSReader):
 
     def read_lines_from_url(self, url):
         pds_datestr = os.path.splitext(os.path.basename(url))[0].split("_")[0]
-        self.filename = dt.datetime.strptime(pds_datestr, pds_date_fmt).strftime(gds_date_fmt)
+        self.filename = dt.datetime.strptime(pds_datestr, PDS_DATE_FMT).strftime(
+            GDS_DATE_FMT
+        )
         url_text = requests.get(url).text
         lines = url_text.splitlines()
         self.file_length = len(lines)

@@ -3,17 +3,19 @@ import os
 
 import pandas as pd
 from util.mars_time import MarsDate
-
-from util.time import round_to_x_hour, GDS_DATE_FMT
+from util.time import GDS_DATE_FMT, round_to_x_hour
 
 # TODO: check_file_exists shouldn't be part of path handler, should be part of loader
 # TODO: make_n_before_after(f, before, after)
 
+
 class FilenameBuilder:
     def __init__(self, level: str, pds=False, mcs_data_path=None) -> None:
-        if (not pds and mcs_data_path==None) or (pds and mcs_data_path!=None):
+        if (not pds and mcs_data_path is None) or (pds and mcs_data_path is not None):
             print(pds, mcs_data_path)
-            raise ValueError(f"Must provide one and only one of 'pds' or 'mcs_data_path'")
+            raise ValueError(
+                "Must provide one and only one of 'pds' or 'mcs_data_path'"
+            )
         elif pds:
             self.handler = PDSFileFormatter(level)
         elif mcs_data_path:
@@ -23,7 +25,9 @@ class FilenameBuilder:
         filename = self.handler.build_filename_from_filestr(filestr)
         return filename
 
-    def make_filenames_from_daterange(self, start: dt.datetime, end: dt.datetime) -> list:
+    def make_filenames_from_daterange(
+        self, start: dt.datetime, end: dt.datetime
+    ) -> list:
         """
         Build paths and check if each file exists
         """
@@ -57,7 +61,6 @@ class FilenameBuilder:
         filestrs = [self.handler.convert_dt_to_filestr(d) for d in datetimes]
         return filestrs
 
-    
 
 class FileFormatterBase:
     level_record_map = {"L1B": "RDR", "L2": "DDR"}
@@ -67,7 +70,7 @@ class FileFormatterBase:
         Convert datetime to 12-digit filebase structure.
         Will not match real filename if not rounded to 4-hour
         """
-        return datetime.strftime(gds_date_fmt)
+        return datetime.strftime(GDS_DATE_FMT)
 
     def convert_dt_to_filestr(self, datetime: dt.datetime) -> str:
         """
@@ -81,14 +84,13 @@ class FileFormatterBase:
 
     def convert_filestr_to_dt(self, filestr: str) -> dt.datetime:
         "Convert 12-digit filebase structure to datetime"
-        filedt = dt.datetime.strptime(filestr, gds_date_fmt)
+        filedt = dt.datetime.strptime(filestr, GDS_DATE_FMT)
         return filedt
 
-    
 
 class PDSFileFormatter(FileFormatterBase):
 
-    url_base = 'https://atmos.nmsu.edu/PDS/data/'
+    url_base = "https://atmos.nmsu.edu/PDS/data/"
 
     def __init__(self, level: str) -> None:
         self._check_valid_level(level)
@@ -97,7 +99,10 @@ class PDSFileFormatter(FileFormatterBase):
 
     def _check_valid_level(self, level: str) -> None:
         if level not in self.level_record_map.keys():
-            raise ValueError(f"Level {level} not recognized. Expected one of {self.level_record_map.keys()}")
+            raise ValueError(
+                f"Level {level} not recognized. "
+                f"Expected one of {self.level_record_map.keys()}"
+            )
 
     def build_filename_from_filestr(self, filestr: str):
         filedt = self.convert_filestr_to_dt(filestr)
@@ -113,26 +118,27 @@ class PDSFileFormatter(FileFormatterBase):
             yearstr,
             f"{yearstr}{monthstr}",
             f"{yearstr}{monthstr}{daystr}",
-            f"{yearstr}{monthstr}{daystr}{hourstr}_{self.data_record}.TAB"
+            f"{yearstr}{monthstr}{daystr}{hourstr}_{self.data_record}.TAB",
         )
-        
+
     def build_mromstr(self, date: dt.datetime):
         if self.level in ["L2", "L22D", "L2_2D", "DDR"]:
-            mrom_0 = '2'
+            mrom_0 = "2"
         elif self.level == ["L1B", "RDR"]:
-            mrom_0 = '1'
+            mrom_0 = "1"
         elif self.level == ["L0", "EDR"]:
-            mrom_0 = '0'
-        #last 3 digits
-        mrom_1 = 0 #start at 000
-        #001 is September 2006, +1 from there
+            mrom_0 = "0"
+        # last 3 digits
+        mrom_1 = 0  # start at 000
+        # 001 is September 2006, +1 from there
         if date.month >= 9:
-            mrom_1+= (date.year-2006)*12+date.month-8
+            mrom_1 += (date.year - 2006) * 12 + date.month - 8
         else:
-            mrom_1+= (date.year-2007)*12+4+date.month
-        mrom_1 = str(mrom_1).zfill(3) #convert integer to 3 digit string
-        mrom = 'MROM_'+mrom_0+mrom_1 #combine with data record
+            mrom_1 += (date.year - 2007) * 12 + 4 + date.month
+        mrom_1 = str(mrom_1).zfill(3)  # convert integer to 3 digit string
+        mrom = "MROM_" + mrom_0 + mrom_1  # combine with data record
         return mrom
+
 
 class DirectoryFileFormatter(FileFormatterBase):
 
@@ -142,13 +148,6 @@ class DirectoryFileFormatter(FileFormatterBase):
         self.level = level
         self.mcs_directory = mcs_data_path
         self.level_directory = self.build_level_directory(self.level_dir_map[level])
-
-    def build_level_directory(self, level_directory):
-        """
-        Build path to L1B or L2 base directory
-        /path/to/mcs_data/level_1b/
-        """
-        return os.path.join(self.mcs_directory, level_directory)
 
     def build_level_directory(self, level_directory):
         """
@@ -188,7 +187,9 @@ class DirectoryFileFormatter(FileFormatterBase):
         """
         Convert full path of file to datetime
         """
-        return self.convert_filestr_to_filedt(os.path.splitext(os.path.basename(path))[0])
+        return self.convert_filestr_to_filedt(
+            os.path.splitext(os.path.basename(path))[0]
+        )
 
     def find_file_from_date(self, date):
         """
@@ -224,6 +225,7 @@ class DirectoryFileFormatter(FileFormatterBase):
         paths = [f for f in expected_paths if os.path.exists(f)]
         return paths, dont_exist
 
+
 class DataPathHandler:
     """
     Base class for MCS data file path handler.
@@ -237,7 +239,6 @@ class DataPathHandler:
     def __init__(self, mcs_data_path):
         self.mcs_directory = mcs_data_path
         self.level_directory = self.__build_level_directory__(self.level_dir_name)
-
 
     def find_n_preceding_files_from_date(self, date, n):
         """

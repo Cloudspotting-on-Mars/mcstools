@@ -1,13 +1,12 @@
-from audioop import add
 import datetime as dt
 
 import dask.dataframe as dd
-import util.mars_time as mt
 import pandas as pd
+import util.mars_time as mt
 from dask import delayed
-
 from data_path_handler import FilenameBuilder
 from reader import MCSL1BReader, MCSL22DReader
+
 
 class L1BLoader(MCSL1BReader):
     """
@@ -16,7 +15,9 @@ class L1BLoader(MCSL1BReader):
     """
 
     def __init__(self, pds=False, mcs_data_path=None):
-        self.filename_builder = FilenameBuilder("L1B", pds=pds, mcs_data_path=mcs_data_path)
+        self.filename_builder = FilenameBuilder(
+            "L1B", pds=pds, mcs_data_path=mcs_data_path
+        )
 
     def load(self, files, dask=False):
         if type(files) != list:
@@ -40,14 +41,16 @@ class L1BLoader(MCSL1BReader):
         return self.load(files, *kwargs)
 
 
-class MCSL2Loader():
+class MCSL2Loader:
     """
     Class to load L1B data (multiple files) in different ways.
     Requires path handler to generate filenames in different.
     """
 
     def __init__(self, pds=False, mcs_data_path=None):
-        self.filename_builder = FilenameBuilder("L2", pds=pds, mcs_data_path=mcs_data_path)
+        self.filename_builder = FilenameBuilder(
+            "L2", pds=pds, mcs_data_path=mcs_data_path
+        )
         self.reader = MCSL22DReader(pds=pds)
 
     def load(self, files, ddr, add_cols: list = None, profiles=None, dask=False):
@@ -57,21 +60,29 @@ class MCSL2Loader():
             df = pd.DataFrame(columns=self.reader.columns)
         else:
             if not dask:
-                df = pd.concat([self.reader.read(f, ddr, add_cols) for f in sorted(files)])
+                df = pd.concat(
+                    [self.reader.read(f, ddr, add_cols) for f in sorted(files)]
+                )
             else:
-                dfs = [delayed(self.reader.read)(f, ddr, add_cols) for f in sorted(files)]
+                dfs = [
+                    delayed(self.reader.read)(f, ddr, add_cols) for f in sorted(files)
+                ]
                 df = dd.from_delayed(dfs)
         if profiles:
             df = df[df["Prof#"].isin(profiles)]
         return df
 
     def load_from_filebase_profiles(self, filebase, profiles, ddr):
-        return self.load(self.filename_builder.make_filename_from_filestr(filebase), ddr, profiles=profiles)
+        return self.load(
+            self.filename_builder.make_filename_from_filestr(filebase),
+            ddr,
+            profiles=profiles,
+        )
 
     def load_date_range(
         self, start_time, end_time, ddr="DDR1", add_cols: list = None
     ):  # , profiles=[]):
-        if ddr=="DDR1":
+        if ddr == "DDR1":
             if not add_cols:
                 required_cols = ["dt"]
                 remove_cols = ["dt"]
@@ -85,9 +96,11 @@ class MCSL2Loader():
             required_cols = add_cols
             remove_cols = []
         print(f"Loading L2 {ddr} data from {start_time} - {end_time}")
-        files = self.filename_builder.make_filenames_from_daterange(start_time, end_time)
+        files = self.filename_builder.make_filenames_from_daterange(
+            start_time, end_time
+        )
         data = self.load(files, ddr, add_cols=required_cols)  # , profiles=profiles)
-        if ddr=="DDR1":
+        if ddr == "DDR1":
             data = data[(data["dt"] >= start_time) & (data["dt"] < end_time)]
         data = data.drop(columns=remove_cols)
         return data
@@ -124,6 +137,6 @@ class MCSL2Loader():
             date_start, date_end, ddr, add_cols=add_cols, **kwargs
         )
         # This reduction will need to be more complicated for multi-MY searches
-        if ddr=="DDR1":
+        if ddr == "DDR1":
             data = data[(data["L_s"] >= start_ls) & (data["L_s"] < end_ls)]
         return data

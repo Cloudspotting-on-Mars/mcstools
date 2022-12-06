@@ -13,6 +13,7 @@ setup(
     long_description=open('README.md').read(),
     install_requires=[
         "black==22.10.0",
+        "coloredlogs==15.0.1",
         "dask==2022.6.1",
         "distributed==2022.6.1",
         "flake8==4.0.1",
