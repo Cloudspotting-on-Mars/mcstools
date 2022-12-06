@@ -12,7 +12,7 @@ setup(
     description='Package to read MCS data',
     long_description=open('README.md').read(),
     install_requires=[
-        "black==19.10b",
+        "black==22.10.0",
         "dask==2022.6.1",
         "distributed==2022.6.1",
         "flake8==4.0.1",
@@ -21,5 +21,6 @@ setup(
         "numpy==1.23.0",
         "pandas==1.4.3",
         "pytest==7.1.2",
+        "scipy==1.8.1",
     ],
 )

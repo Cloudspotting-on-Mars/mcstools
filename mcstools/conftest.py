@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-
 from mcsfile import MCSL1BFile
 from reader import MCSL1BReader
 
@@ -13,6 +12,7 @@ def l1b_file():
 @pytest.fixture()
 def l1b_reader():
     return MCSL1BReader()
+
 
 @pytest.fixture()
 def sphere_coords():

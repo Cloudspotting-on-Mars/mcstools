@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def spherical_coords_mcenter(radius: float, colat: float, lat: float) -> np.array:
     """
     Return vector in spherical coordinates given r, theta, phi

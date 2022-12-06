@@ -1,5 +1,4 @@
 import pytest
-
 from util.geom import scattering_angle, spherical_to_cartesian
 
 

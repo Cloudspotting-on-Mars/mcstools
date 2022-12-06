@@ -466,4 +466,6 @@ class MCSL22dFile(MCSFile):
         self.all_DDR_names = [
             self.data_records[x]["columns"] for x in self.data_records.keys()
         ]
-        self.dtype_int = ["1", "Orb_num"] + [x for x in self.all_DDR_names if "qual" in x]
+        self.dtype_int = ["1", "Orb_num"] + [
+            x for x in self.all_DDR_names if "qual" in x
+        ]

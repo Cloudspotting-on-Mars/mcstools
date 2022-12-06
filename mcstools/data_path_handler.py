@@ -3,7 +3,6 @@ import os
 
 import pandas as pd
 from util.mars_time import MarsDate
-
 from util.time import round_to_x_hour
 
 
@@ -84,9 +83,7 @@ class DataPathHandler:
         )
         return path
 
-    def build_paths_from_daterange(
-        self, start: dt.datetime, end: dt.datetime
-    ) -> list:
+    def build_paths_from_daterange(self, start: dt.datetime, end: dt.datetime) -> list:
         """
         Build paths to all files spanning range.
         Rounds start date down to nearest 4-hour and
@@ -97,7 +94,7 @@ class DataPathHandler:
         )  # convert times to 4-hour format
         end = round_to_x_hour(end, hours=4, force_up=True)
         datetimes = pd.date_range(
-            start, end, freq="4H", closed="left"
+            start, end, freq="4H", inclusive="left"
         )  # generate file datetimes (4-hour fmt)
         # Build paths for each 4-hour date
         files = [self.build_date_path(d) for d in datetimes]

@@ -315,8 +315,6 @@ class MCSL22dReader(MCSReader, MCSL22dFile):
         return df
 
     def make_empty_df(self, ddr):
-        data = pd.DataFrame(
-            data=[], columns=self.data_records[ddr]["columns"]
-        )
+        data = pd.DataFrame(data=[], columns=self.data_records[ddr]["columns"])
         data = self.add_profile_filename_number(data, ddr)
         return data

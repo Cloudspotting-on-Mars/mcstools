@@ -1,8 +1,7 @@
 import dask.dataframe as dd
 import pandas as pd
-from dask import delayed
 import util.mars_time as mt
-
+from dask import delayed
 from data_path_handler import L1BDataPathHandler, L22dDataPathHandler
 from reader import MCSL1BReader, MCSL22dReader
 
@@ -37,10 +36,11 @@ class MCSL1BLoader(L1BDataPathHandler, MCSL1BReader):
         files, _ = self.find_files_around_file(f, n)
         return self.load(files, *kwargs)
 
+
 class MCSL22dLoader(L22dDataPathHandler, MCSL22dReader):
     def __init__(self, mcs_data_path):
         super().__init__(mcs_data_path)
-    
+
     def load_single(self, filename, ddr):
         try:
             data = self.read(filename, ddr=ddr)
@@ -55,7 +55,7 @@ class MCSL22dLoader(L22dDataPathHandler, MCSL22dReader):
     def load(self, files, ddr, profiles=[]):
         if type(files) != list:
             data = self.load_single(files, ddr)
-            if len(profiles)== 0:
+            if len(profiles) == 0:
                 return data
             else:
                 self.reduce_to_profiles([data], profiles)
@@ -63,7 +63,7 @@ class MCSL22dLoader(L22dDataPathHandler, MCSL22dReader):
             return self.make_empty_df(ddr)
         else:
             dfs = [self.read(f) for f in files]
-            if len(profiles)>0:
+            if len(profiles) > 0:
                 dfs = [self.reduce_to_profiles(df) for df in dfs]
             return pd.concat(dfs)
 
