@@ -173,10 +173,7 @@ class DirectoryFileFormatter(FileFormatterBase):
         /path/to/mcs_data/level_1b/YYMM/YYMMDDHHMMSS.L1B
         """
         filestr = self.date_to_filestr(date)
-        path = os.path.join(
-            self.build_date_directory(date),
-            f"{filestr}.{self.level}",
-        )
+        path = os.path.join(self.build_date_directory(date), f"{filestr}.{self.level}",)
         return path
 
     def build_filename_from_filestr(self, filestr: str):

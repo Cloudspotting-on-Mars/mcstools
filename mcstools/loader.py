@@ -8,7 +8,7 @@ from data_path_handler import FilenameBuilder
 from reader import MCSL1BReader, MCSL22DReader
 
 
-class L1BLoader():
+class L1BLoader:
     """
     Class to load L1B data (multiple files) in different ways.
     Requires path handler to generate filenames in different.
@@ -35,9 +35,7 @@ class L1BLoader():
                 df = dd.from_delayed(dfs)
         return df
 
-    def load_date_range(
-        self, start_time, end_time, add_cols = None
-    ):
+    def load_date_range(self, start_time, end_time, add_cols=None):
         print(f"Loading L1B data from {start_time} - {end_time}")
         files = self.filename_builder.make_filenames_from_daterange(
             start_time, end_time

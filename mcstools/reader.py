@@ -8,7 +8,8 @@ from mcsfile import MCSL1BFile, MCSL22DFile
 from util.log import logger
 from util.time import GDS_DATE_FMT, PDS_DATE_FMT, add_datetime_column
 
-#TODO: pandas needs request url before reading
+# TODO: pandas needs request url before reading
+
 
 class MCSReader:
     """
@@ -26,7 +27,7 @@ class MCSL1BReader(MCSReader, MCSL1BFile):
 
     def __init__(self, pds):
         super().__init__()
-        self.pds=pds
+        self.pds = pds
         self.output_columns = self.columns + ["Solar_dist", "L_sub_s"]
 
     def read(self, filename, usecols=None, add_cols: str = None, **kwargs):
@@ -99,15 +100,13 @@ class MCSL1BReader(MCSReader, MCSL1BFile):
                 break
             if "Solar_dist" in line:
                 # Solar distance in km
-                vals["Solar_dist"] = float(
-                    line.strip().split("=")[-1].split("(km)")[0]
-                )
+                vals["Solar_dist"] = float(line.strip().split("=")[-1].split("(km)")[0])
             elif "L_sub_s" in line:
                 # Ls in degrees
                 vals["L_sub_s"] = float(line.strip().split("=")[-1])
             if vals["Solar_dist"] and vals["L_sub_s"]:
                 break
-        print('header')
+        print("header")
         return vals
 
 
