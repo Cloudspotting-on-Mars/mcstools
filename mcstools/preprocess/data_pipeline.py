@@ -196,7 +196,7 @@ class L1DataPipeline(DataPipeline):
     l1bagg = L1BAggregator()
     az_range_map = {"in": (170, 190), "left": (80, 100), "right": (260, 280)}
 
-    def __init__(self):
+    def __init__():
         super().__init__()
 
     def select_limb_views(
