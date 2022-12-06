@@ -19,7 +19,7 @@ class MCSL1BFile(MCSFile):
     file_suffix = "L1B"
     ndetectors = 21  # number of detectors
     detector_range = np.arange(1, ndetectors + 1, 1)
-    # Detector numbers incresae in altitude for B channels, decrease in A
+    # Detector numbers in increasing altitude
     detectors = {"A": np.flipud(detector_range), "B": detector_range}
     # Channel names
     channels = [f"A{x}" for x in range(1, 7)] + [f"B{x}" for x in range(1, 4)]
@@ -312,13 +312,16 @@ class MCSL1BFile(MCSFile):
         return [self.make_rad_col_name(channel, d) for d in self.detector_range]
 
 
-class MCSL22dFile(MCSFile):
+class MCSL22DFile(MCSFile):
+
     """
-    Class for MCS L2 metadata and methods to access metadata.
+    Class with MCS L2_2d file information and methods
+    to read in files and store data.
     """
 
     file_suffix = "L2_2d"
     nan_values = [-9999, ""]  # values to treat as NaNs
+    comments = []  # initialize header comments
     data_records = {
         "DDR1": {
             "lines": 1,
@@ -459,13 +462,60 @@ class MCSL22dFile(MCSFile):
             ],
         },
     }
+    # set dtypes for making DFs
+    all_DDR_names = [
+        item
+        for sublist in [d["columns"] for d in data_records.values()]
+        for item in sublist
+    ]
+    # DDR1 dtypes
+    ddr1_dtypes_int = {
+        col: int for col in ["1", "Orb_num"] + [x for x in all_DDR_names if "qual" in x]
+    }
+    ddr1_float_cols = [
+        "L_s",
+        "Solar_dist",
+        "Solar_lat",
+        "Solar_lon",
+        "Solar_zen",
+        "LTST",
+        "Profile_lat",
+        "Profile_lon",
+        "Profile_rad",
+        "Profile_alt",
+        "Limb_ang",
+        "Surf_lat",
+        "Surf_lon",
+        "Surf_rad",
+        "T_surf",
+        "T_surf_err",
+        "T_near_surf",
+        "T_near_surf_err",
+        "Dust_column",
+        "Dust_column_err",
+        "H2Ovap_column",
+        "H2Ovap_column_err",
+        "H2Oice_column",
+        "H2Oice_column_err",
+        "CO2ice_column",
+        "CO2ice_column_err",
+        "p_surf",
+        "p_surf_err",
+        "p_ret_alt",
+        "p_ret",
+        "p_ret_err",
+    ]
+    ddr1_dtypes_float = {col: float for col in ddr1_float_cols}
+    ddr1_dtypes = {**ddr1_dtypes_int, **ddr1_dtypes_float}
+    data_records["DDR1"]["dtypes"] = ddr1_dtypes
+    # DDR2 dtypes
+    ddr2_dtypes = {col: float for col in data_records["DDR2"]["columns"]}
+    ddr2_dtypes["1"] = int
+    data_records["DDR2"]["dtypes"] = ddr2_dtypes
 
-    def __init__(self):
+
+    def __init__(self, pds=False):
         super().__init__()
-        # set dtypes for making DFs
-        self.all_DDR_names = [
-            self.data_records[x]["columns"] for x in self.data_records.keys()
-        ]
-        self.dtype_int = ["1", "Orb_num"] + [
-            x for x in self.all_DDR_names if "qual" in x
-        ]
+        if pds:
+            del self.data_records["DDR3"]
+            del self.data_records["DDR4"]

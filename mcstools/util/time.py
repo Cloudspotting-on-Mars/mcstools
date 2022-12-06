@@ -1,7 +1,8 @@
 import datetime as dt
-
 import pandas as pd
 
+GDS_DATE_FMT = "%y%m%d%H%M%S" # Format used in GDS filenames
+PDS_DATE_FMT = "%Y%m%d%H"  # Format used in PDS filenames
 
 def round_to_x_hour(date, hours=4, force_down=False, force_up=False):
     """
@@ -45,3 +46,26 @@ def convert_date_utcs(date: str, utc: str):
     else:
         date_str = date.strip().replace('"', "") + " " + utc.strip().replace('"', "")
     return pd.to_datetime(date_str, format=fmt, errors="coerce")
+
+
+def add_datetime_column(
+        df: pd.DataFrame, dt_name: str = "dt"
+    ) -> pd.DataFrame:
+        """
+        Convert Date and UTC columns to single datetime column.
+
+        Parameters
+        ----------
+        df: MCS data
+        dt_name: column name for new datetime column
+
+        Returns
+        -------
+        df: data with additional datetime column
+        """
+        if len(df.index) == 0:
+            return pd.DataFrame(columns=list(df.columns) + ["dt"])
+        df[dt_name] = df.apply(
+            lambda row: convert_date_utcs(row["Date"], row["UTC"]), axis=1
+        )
+        return df

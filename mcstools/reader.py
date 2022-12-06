@@ -1,10 +1,13 @@
+import datetime as dt
 import os
+import requests
 
 import numpy as np
 import pandas as pd
-from mcsfile import MCSL1BFile, MCSL22dFile
 
-# TODO: Refactor L22d class into same format as L1b
+from mcsfile import MCSL1BFile, MCSL22DFile
+from util.time import GDS_DATE_FMT, PDS_DATE_FMT, add_datetime_column
+from util.log import logger
 
 
 class MCSReader:
@@ -40,16 +43,23 @@ class MCSL1BReader(MCSReader, MCSL1BFile):
         """
         if not usecols:
             usecols = self.columns  # read all columns if not specified
-        df = pd.read_csv(
-            filename,
-            names=self.columns,
-            header=0,
-            comment=self.comment_line_character,
-            na_values=self.nan_values,
-            usecols=usecols,
-            dtype=self.dtypes,
-            **kwargs,
-        )
+        try:
+            df = pd.read_csv(
+                filename,
+                names=self.columns,
+                header=0,
+                comment=self.comment_line_character,
+                na_values=self.nan_values,
+                usecols=usecols,
+                dtype=self.dtypes,
+                **kwargs,
+            )
+        except pd.errors.ParserError as e:
+            logger.error(e)
+            logger.error(
+                f"Unable to load {filename}, number of columns does not match expected"
+            )
+            df = pd.DataFrame(columns=usecols)
         header_vals = self.grab_header_values(filename)
         for newcol in header_vals.keys():
             df[newcol] = header_vals[newcol]
@@ -87,14 +97,11 @@ class MCSL1BReader(MCSReader, MCSL1BFile):
         return vals
 
 
-class MCSL22dReader(MCSReader, MCSL22dFile):
-    def __init__(self):
-        """
-        Class with MCS L2_2d file information and methods
-        to read in files and store data.
-        """
+class MCSL22DReader(MCSReader):
+    def __init__(self, pds=False):
         super().__init__()
-        self.comments = []  # initialize header comments
+        self.l22dfile = MCSL22DFile(pds=pds)
+        self.data_records = self.l22dfile.data_records
 
     def read_lines_from_file(self, filepath):
         """
@@ -109,6 +116,14 @@ class MCSL22dReader(MCSReader, MCSL22dFile):
 
         with open(self.path) as f:
             lines = f.readlines()
+        self.file_length = len(lines)
+        return lines
+
+    def read_lines_from_url(self, url):
+        pds_datestr = os.path.splitext(os.path.basename(url))[0].split("_")[0]
+        self.filename = dt.datetime.strptime(pds_datestr, pds_date_fmt).strftime(gds_date_fmt)
+        url_text = requests.get(url).text
+        lines = url_text.splitlines()
         self.file_length = len(lines)
         return lines
 
@@ -269,12 +284,13 @@ class MCSL22dReader(MCSReader, MCSL22dFile):
         col_index = [self.data_records[record]["columns"].index(x) for x in columns]
         inp_data = [[sublist[i] for i in col_index] for sublist in data]
         # getting FutureWarning with float here,should make dict of dtypes in mcsfile.py
-        df = pd.DataFrame(data=inp_data, columns=columns, dtype=float)
-        df.replace(self.nan_values, np.nan, inplace=True)
+        df = pd.DataFrame(data=inp_data, columns=columns)
+        df = df.astype(self.data_records[record]["dtypes"])
+        df.replace(self.l22dfile.nan_values, np.nan, inplace=True)
         # convert dtype of columns that should be integers
-        int_cols = [x for x in df.columns if x in self.dtype_int]
-        for col in int_cols:
-            df[col] = df[col].astype(int)
+        # int_cols = [x for x in df.columns if x in self.dtype_int]
+        # for col in int_cols:
+        #    df[col] = df[col].astype(int)
         return df
 
     def add_profile_filename_number(self, df, record):
@@ -295,9 +311,9 @@ class MCSL22dReader(MCSReader, MCSL22dFile):
         DDRprofn = self.data_records[record]["lines"]
         profnum = df.index / DDRprofn
         df["Prof#"] = profnum.astype(int)
-        df["filename"] = os.path.basename(self.path).split(".")[0]
-        df["level"] = df.index % DDRprofn
-
+        df["filename"] = self.filename
+        if record == "DDR2":
+            df["level"] = df.index % DDRprofn
         return df
 
     def get_path(self, datetime):
@@ -305,16 +321,17 @@ class MCSL22dReader(MCSReader, MCSL22dFile):
         path = os.path.join(self.path_l22d, f"{basepath}.L2")
         return path
 
-    def read(self, filename, ddr="DDR2"):
-        lines = self.read_lines_from_file(filename)
+    def read(self, filename, ddr, add_cols: list = None):
+        if "https" in filename:
+            lines = self.read_lines_from_url(filename)
+        else:
+            lines = self.read_lines_from_file(filename)
         self.get_comments_from_lines(lines)
         self.get_column_names_from_lines(lines)
         data = self.get_data_record(lines, ddr)
         df = self.make_df(data, ddr, self.data_records[ddr]["columns"])
         df = self.add_profile_filename_number(df, ddr)
+        if add_cols:
+            if "dt" in add_cols:
+                df = add_datetime_column(df)
         return df
-
-    def make_empty_df(self, ddr):
-        data = pd.DataFrame(data=[], columns=self.data_records[ddr]["columns"])
-        data = self.add_profile_filename_number(data, ddr)
-        return data
