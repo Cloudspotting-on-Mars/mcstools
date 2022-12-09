@@ -8,8 +8,6 @@ from mcsfile import MCSL1BFile, MCSL22DFile
 from util.log import logger
 from util.time import GDS_DATE_FMT, PDS_DATE_FMT, add_datetime_column
 
-# TODO: pandas needs request url before reading
-
 
 class MCSReader:
     """
@@ -25,7 +23,7 @@ class MCSL1BReader(MCSReader, MCSL1BFile):
     Class to read data from a *single* L1B file.
     """
 
-    def __init__(self, pds):
+    def __init__(self, pds=False):
         super().__init__()
         self.pds = pds
         self.output_columns = self.columns + ["Solar_dist", "L_sub_s"]
@@ -87,7 +85,7 @@ class MCSL1BReader(MCSReader, MCSL1BFile):
         vals = {"Solar_dist": None, "L_sub_s": None}
         if not url:
             with open(filename, "r") as f:
-                lines = [next(f) for x in range(nlines)]
+                lines = [f.readline() for x in range(nlines)]
         else:
             url_text = requests.get(filename).text
             lines = url_text.splitlines()[0:40]

@@ -1,5 +1,7 @@
 from preprocess.data_pipeline import L1DataPipeline
 
+# TODO: @classmethod() from_config() option to setup processer
+
 
 class L1BStandardInTrack:
     def __init__(
@@ -11,14 +13,20 @@ class L1BStandardInTrack:
         rolling=[0],
         moving=[0],
     ):
-        self.limb_scene_alt_range = (limb_scene_alt_range,)
-        self.first_limb_col_sec_between = (first_limb_col_sec_between,)
-        self.limb_angle_range = (limb_angle_range,)
-        self.gqual = (gqual,)
-        self.rolling = (rolling,)
-        self.moving = (moving,)
+        self.limb_scene_alt_range = limb_scene_alt_range
+        self.first_limb_col_sec_between = first_limb_col_sec_between
+        self.limb_angle_range = limb_angle_range
+        self.gqual = gqual
+        self.rolling = rolling
+        self.moving = moving
 
     def preprocess(self, df):
+        """
+        From loaded L1b data, preprocess to get standard limb in-track values
+        based on range of Scene alts, limb angles, azimuth angles, and quality flags.
+        Removes first three measurements of a limb sequence (thermal drift) and
+        averages the others.
+        """
         pipe = L1DataPipeline()
         df = pipe.add_datetime_column(df)
         df = pipe.select_limb_views(
@@ -41,11 +49,16 @@ class L1BStandardInTrack:
         df = pipe.select_direction(df, "in")
         # Average
         df_ave = pipe.average_limb_sequences(
-            df, cols=["dt", "SC_rad", "Scene_alt", "Scene_rad"] + pipe.radcols
+            df, cols=None#["dt", "SC_rad", "Scene_alt", "Scene_rad"] + pipe.radcols
         )
+        df_ave = df_ave.reset_index().drop(columns="sequence_label")
         return df_ave
 
     def melt_to_xarray(self, df):
+        """
+        Convert Dataframe of L1b radiances to xarray with coordinates:
+        ["dt", "Detector", "Channel"].
+        """
         pipe = L1DataPipeline()
         df = pipe.melt_channel_detector_radiance(df.reset_index())
         df = df.set_index(["dt", "Detector", "Channel"])[["Radiance"]].to_xarray()
