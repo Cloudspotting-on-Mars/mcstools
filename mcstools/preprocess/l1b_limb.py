@@ -49,7 +49,7 @@ class L1BStandardInTrack:
         df = pipe.select_direction(df, "in")
         # Average
         df_ave = pipe.average_limb_sequences(
-            df, cols=None#["dt", "SC_rad", "Scene_alt", "Scene_rad"] + pipe.radcols
+            df, cols=None  # ["dt", "SC_rad", "Scene_alt", "Scene_rad"] + pipe.radcols
         )
         df_ave = df_ave.reset_index().drop(columns="sequence_label")
         return df_ave
