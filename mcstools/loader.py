@@ -8,29 +8,47 @@ from data_path_handler import FilenameBuilder
 from reader import MCSL1BReader, MCSL22DReader
 
 
-class L1BLoader(MCSL1BReader):
+class L1BLoader:
     """
     Class to load L1B data (multiple files) in different ways.
     Requires path handler to generate filenames in different.
     """
 
     def __init__(self, pds=False, mcs_data_path=None):
+        self.pds = pds
         self.filename_builder = FilenameBuilder(
-            "L1B", pds=pds, mcs_data_path=mcs_data_path
+            "L1B", pds=self.pds, mcs_data_path=mcs_data_path
         )
+        self.reader = MCSL1BReader(pds=pds)
 
-    def load(self, files, dask=False):
+    def load(self, files, dask=False, add_cols: list = None):
         if type(files) != list:
-            return self.read(files)
+            return self.reader.read(files, add_cols=add_cols)
         elif len(files) == 0:
             df = pd.DataFrame(columns=self.columns)
         else:
             if not dask:
-                df = pd.concat([self.read(f) for f in sorted(files)])
+                pieces = []
+                for f in sorted(files):
+                    try:
+                        fdf = self.reader.read(f, add_cols=add_cols)
+                    except LookupError:
+                        continue
+                    pieces.append(fdf)
+                df = pd.concat(pieces)
             else:
-                dfs = [delayed(self.read)(f) for f in sorted(files)]
+                dfs = [delayed(self.reader.read)(f) for f in sorted(files)]
                 df = dd.from_delayed(dfs)
         return df
+
+    def load_date_range(self, start_time, end_time, add_cols=["dt"]):
+        print(f"Loading L1B data from {start_time} - {end_time}")
+        files = self.filename_builder.make_filenames_from_daterange(
+            start_time, end_time
+        )
+        data = self.load(files, add_cols=add_cols)
+        data = data[(data["dt"] >= start_time) & (data["dt"] < end_time)]
+        return data
 
     def load_files_around_date(self, date, n=1, **kwargs):
         files, _ = self.find_files_around_date(date, n)
@@ -60,9 +78,14 @@ class MCSL2Loader:
             df = pd.DataFrame(columns=self.reader.columns)
         else:
             if not dask:
-                df = pd.concat(
-                    [self.reader.read(f, ddr, add_cols) for f in sorted(files)]
-                )
+                pieces = []
+                for f in sorted(files):
+                    try:
+                        fdf = self.reader.read(f, ddr, add_cols)
+                    except LookupError:
+                        continue
+                    pieces.append(fdf)
+                df = pd.concat(pieces)
             else:
                 dfs = [
                     delayed(self.reader.read)(f, ddr, add_cols) for f in sorted(files)

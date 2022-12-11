@@ -124,10 +124,12 @@ class PDSFileFormatter(FileFormatterBase):
     def build_mromstr(self, date: dt.datetime):
         if self.level in ["L2", "L22D", "L2_2D", "DDR"]:
             mrom_0 = "2"
-        elif self.level == ["L1B", "RDR"]:
+        elif self.level in ["L1B", "RDR"]:
             mrom_0 = "1"
-        elif self.level == ["L0", "EDR"]:
+        elif self.level in ["L0", "EDR"]:
             mrom_0 = "0"
+        else:
+            raise ValueError(f"Cannot determine MROM value for level: {self.level}")
         # last 3 digits
         mrom_1 = 0  # start at 000
         # 001 is September 2006, +1 from there

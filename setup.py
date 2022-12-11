@@ -24,5 +24,6 @@ setup(
         "pytest==7.1.2",
         "requests",
         "scipy==1.8.1",
+        "xarray",
     ],
 )

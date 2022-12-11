@@ -23,11 +23,12 @@ class MCSL1BReader(MCSReader, MCSL1BFile):
     Class to read data from a *single* L1B file.
     """
 
-    def __init__(self):
+    def __init__(self, pds=False):
         super().__init__()
+        self.pds = pds
         self.output_columns = self.columns + ["Solar_dist", "L_sub_s"]
 
-    def read(self, filename, usecols=None, **kwargs):
+    def read(self, filename, usecols=None, add_cols: str = None, **kwargs):
         """
         Create DF of data in L1B file. L1B have csv structure,
         so can easily read in with pandas
@@ -59,12 +60,15 @@ class MCSL1BReader(MCSReader, MCSL1BFile):
                 f"Unable to load {filename}, number of columns does not match expected"
             )
             df = pd.DataFrame(columns=usecols)
-        header_vals = self.grab_header_values(filename)
+        header_vals = self.grab_header_values(filename, url=self.pds)
         for newcol in header_vals.keys():
             df[newcol] = header_vals[newcol]
+        if add_cols:
+            if "dt" in add_cols:
+                df = add_datetime_column(df)
         return df
 
-    def grab_header_values(self, filename: str) -> dict:
+    def grab_header_values(self, filename: str, url=False) -> dict:
         """
         Open file and grab certain values from header.
         Currently just "Solar_dist" and "L_sub_s".
@@ -77,22 +81,25 @@ class MCSL1BReader(MCSReader, MCSL1BFile):
         -------
         vals: dictionary of header values
         """
+        nlines = 40
         vals = {"Solar_dist": None, "L_sub_s": None}
-        with open(filename, "r") as f:
-            for i in range(0, 40):
-                line = f.readline()
-                if line[0] != "#":
-                    break
-                if "Solar_dist" in line:
-                    # Solar distance in km
-                    vals["Solar_dist"] = float(
-                        line.strip().split("=")[-1].split("(km)")[0]
-                    )
-                elif "L_sub_s" in line:
-                    # Ls in degrees
-                    vals["L_sub_s"] = float(line.strip().split("=")[-1])
-                if vals["Solar_dist"] and vals["L_sub_s"]:
-                    break
+        if not url:
+            with open(filename, "r") as f:
+                lines = [f.readline() for x in range(nlines)]
+        else:
+            url_text = requests.get(filename).text
+            lines = url_text.splitlines()[0:40]
+        for line in lines:
+            if line[0] != "#":
+                break
+            if "Solar_dist" in line:
+                # Solar distance in km
+                vals["Solar_dist"] = float(line.strip().split("=")[-1].split("(km)")[0])
+            elif "L_sub_s" in line:
+                # Ls in degrees
+                vals["L_sub_s"] = float(line.strip().split("=")[-1])
+            if vals["Solar_dist"] and vals["L_sub_s"]:
+                break
         return vals
 
 
