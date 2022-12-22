@@ -25,3 +25,7 @@ exclude = '''
 profile = "black"
 directory = ["mcs_tools"]
 skip_glob = "mcs_tools/.ipynb_checkpoints/*"
+
+[build-system]
+requires = ['setuptools>=42']
+build-backend = 'setuptools.build_meta'
