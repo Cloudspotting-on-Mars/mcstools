@@ -491,7 +491,7 @@ class DetectorPositions:
         self, spacecraft_radius, scene_radius, scene_altitude, fov
     ):
         return scene_altitude - np.sqrt(
-            spacecraft_radius**2 - scene_radius**2
+            spacecraft_radius ** 2 - scene_radius ** 2
         ) * np.arctan(fov)
 
     def get_detector_altitudes(
