@@ -13,8 +13,17 @@ Setup a virtual environment with `python3 -m venv env` and install with `pip ins
 See https://pds-atmospheres.nmsu.edu/data_and_services/atmospheres_data/MARS/atmosphere_temp_prof.html
 
 #### Read a single file
-To read in a file as a DataFrame:
+To read in an L1B file as a DataFrame:
 ```
-reader = MCSL1bReader()
+from mcstools import L1BReader
+reader = L1BReader()
 reader.read(path_to_file)
+```
+
+#### Load Data from PDS
+To load data from PDS:
+```
+from mcstools import L1BLoader
+loader = L1BLoader(pds=True)
+loader.load_date_range("2016-01-01", "2016-01-02")
 ```
