@@ -1,33 +1,33 @@
 import numpy as np
 import pytest
 from data_path_handler import FilenameBuilder
-from mcsfile import MCSL1BFile, MCSL22DFile
-from reader import MCSL1BReader, MCSL22DReader
+from mcsfile import L1BFile, L2File
+from reader import L1BReader, L2Reader
 
 
 @pytest.fixture()
 def l1b_file():
-    return MCSL1BFile()
+    return L1BFile()
 
 
 @pytest.fixture()
 def l2_file():
-    return MCSL22DFile()
+    return L2File()
 
 
 @pytest.fixture()
 def l1b_reader():
-    return MCSL1BReader()
+    return L1BReader()
 
 
 @pytest.fixture()
 def l2_pds_reader():
-    return MCSL22DReader(pds=True)
+    return L2Reader(pds=True)
 
 
 @pytest.fixture()
 def l2_dir_reader():
-    return MCSL22DReader
+    return L2Reader
 
 
 @pytest.fixture()

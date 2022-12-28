@@ -10,7 +10,7 @@ class MCSFile:
         pass
 
 
-class MCSL1BFile(MCSFile):
+class L1BFile(MCSFile):
     """
     Class for MCS L1B metadata and methods to access
     metadata (data columns, header comments, channels, detectors).
@@ -312,7 +312,7 @@ class MCSL1BFile(MCSFile):
         return [self.make_rad_col_name(channel, d) for d in self.detector_range]
 
 
-class MCSL22DFile(MCSFile):
+class L2File(MCSFile):
 
     """
     Class with MCS L2_2d file information and methods

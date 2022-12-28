@@ -1,4 +1,4 @@
-from preprocess.data_pipeline import L1DataPipeline
+from preprocess.data_pipeline import L1BDataPipeline
 
 # TODO: @classmethod() from_config() option to setup processer
 
@@ -27,7 +27,7 @@ class L1BStandardInTrack:
         Removes first three measurements of a limb sequence (thermal drift) and
         averages the others.
         """
-        pipe = L1DataPipeline()
+        pipe = L1BDataPipeline()
         df = pipe.add_datetime_column(df)
         df = pipe.select_limb_views(
             df,
@@ -59,7 +59,7 @@ class L1BStandardInTrack:
         Convert Dataframe of L1b radiances to xarray with coordinates:
         ["dt", "Detector", "Channel"].
         """
-        pipe = L1DataPipeline()
+        pipe = L1BDataPipeline()
         df = pipe.melt_channel_detector_radiance(df.reset_index())
         df = df.set_index(["dt", "Detector", "Channel"])[["Radiance"]].to_xarray()
         return df
