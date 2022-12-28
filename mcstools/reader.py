@@ -4,12 +4,12 @@ import os
 import numpy as np
 import pandas as pd
 import requests
-from mcsfile import MCSL1BFile, MCSL22DFile
+from mcsfile import L1BFile, L2File
 from util.log import logger
 from util.time import GDS_DATE_FMT, PDS_DATE_FMT, add_datetime_column
 
 
-class MCSReader:
+class Reader:
     """
     Base class for MCS file reader.
     """
@@ -18,7 +18,7 @@ class MCSReader:
         pass
 
 
-class MCSL1BReader(MCSReader, MCSL1BFile):
+class L1BReader(Reader, L1BFile):
     """
     Class to read data from a *single* L1B file.
     """
@@ -103,10 +103,10 @@ class MCSL1BReader(MCSReader, MCSL1BFile):
         return vals
 
 
-class MCSL22DReader(MCSReader):
+class L2Reader(Reader):
     def __init__(self, pds=False):
         super().__init__()
-        self.l22dfile = MCSL22DFile(pds=pds)
+        self.l22dfile = L2File(pds=pds)
         self.data_records = self.l22dfile.data_records
 
     def read_lines_from_file(self, filepath):

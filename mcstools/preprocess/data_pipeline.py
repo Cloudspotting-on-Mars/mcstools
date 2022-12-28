@@ -4,7 +4,7 @@ from typing import Union
 import numpy as np
 import pandas as pd
 from detector_positions import DetectorPositions
-from mcsfile import MCSL1BFile
+from mcsfile import L1BFile
 from scipy import interpolate
 from scipy.stats import circmean
 from util.geom import scattering_angle, spherical_coords_mcenter, spherical_to_cartesian
@@ -112,7 +112,7 @@ class L1BAggregator:
     Handles various cyclical columns.
     """
 
-    l1bfile = MCSL1BFile()
+    l1bfile = L1BFile()
     cyclical_range_map = {
         "L_sub_s": (0, 360),
         "LTST": (0, 24),
@@ -183,13 +183,13 @@ class L1BAggregator:
         return self.mean(column, column.name)
 
 
-class L1DataPipeline(DataPipeline):
+class L1BDataPipeline(DataPipeline):
 
     """
     Class for filtering and transforming MCS L1B data.
     """
 
-    l1bfile = MCSL1BFile()  # initialize MCS L1B data reader
+    l1bfile = L1BFile()  # initialize MCS L1B data reader
     detpos = DetectorPositions()  # initialize MCS detector positions
     l1bcols = l1bfile.columns  # all columns of L1b data file
     radcols = l1bfile.radcols

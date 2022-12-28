@@ -5,7 +5,7 @@ import pandas as pd
 import util.mars_time as mt
 from dask import delayed
 from data_path_handler import FilenameBuilder
-from reader import MCSL1BReader, MCSL22DReader
+from reader import L1BReader, L2Reader
 
 
 class L1BLoader:
@@ -19,7 +19,7 @@ class L1BLoader:
         self.filename_builder = FilenameBuilder(
             "L1B", pds=self.pds, mcs_data_path=mcs_data_path
         )
-        self.reader = MCSL1BReader(pds=pds)
+        self.reader = L1BReader(pds=pds)
 
     def load(self, files, dask=False, add_cols: list = None):
         if type(files) != list:
@@ -59,7 +59,7 @@ class L1BLoader:
         return self.load(files, *kwargs)
 
 
-class MCSL2Loader:
+class L2Loader:
     """
     Class to load L1B data (multiple files) in different ways.
     Requires path handler to generate filenames in different.
@@ -69,7 +69,7 @@ class MCSL2Loader:
         self.filename_builder = FilenameBuilder(
             "L2", pds=pds, mcs_data_path=mcs_data_path
         )
-        self.reader = MCSL22DReader(pds=pds)
+        self.reader = L2Reader(pds=pds)
 
     def load(self, files, ddr, add_cols: list = None, profiles=None, dask=False):
         if type(files) != list:
