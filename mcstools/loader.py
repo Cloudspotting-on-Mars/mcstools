@@ -44,13 +44,13 @@ class L1BLoader:
     def load_date_range(self, start_time, end_time, add_cols=["dt"]):
         times = [start_time, end_time]
         for i, t in enumerate(times):
-            if type(t) != dt.datetime:
-                times[i] = dt.datetime.fromisoformat(t)
-            else:
+            if type(t) not in [dt.datetime, str]:
                 raise TypeError(
-                    "Unrecognized type for start/end time, "
+                    f"Unrecognized type ({type(t)}) for start/end time, "
                     "must be datetime or isoformat str"
                 )
+            elif type(t) != dt.datetime:
+                times[i] = dt.datetime.fromisoformat(t)                
         print(f"Loading L1B data from {times[0]} - {times[1]}")
         files = self.filename_builder.make_filenames_from_daterange(*times)
         data = self.load(files, add_cols=add_cols)
