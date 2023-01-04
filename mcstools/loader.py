@@ -50,7 +50,7 @@ class L1BLoader:
                     "must be datetime or isoformat str"
                 )
             elif type(t) != dt.datetime:
-                times[i] = dt.datetime.fromisoformat(t)                
+                times[i] = dt.datetime.fromisoformat(t)
         print(f"Loading L1B data from {times[0]} - {times[1]}")
         files = self.filename_builder.make_filenames_from_daterange(*times)
         data = self.load(files, add_cols=add_cols)

@@ -2,6 +2,7 @@ from preprocess.data_pipeline import L1BDataPipeline
 
 # TODO: @classmethod() from_config() option to setup processer
 
+
 class L1BOnPlanetInTrack:
     def __init__(
         self,
@@ -13,7 +14,7 @@ class L1BOnPlanetInTrack:
         moving=[0],
     ):
         self.scene_alt_range = scene_alt_range
-        self.elevation_angle_range= elevation_angle_range
+        self.elevation_angle_range = elevation_angle_range
         self.limb_angle_range = limb_angle_range
         self.gqual = gqual
         self.rolling = rolling
@@ -22,15 +23,20 @@ class L1BOnPlanetInTrack:
     def preprocess(self, df):
         """
         From loaded L1b data, preprocess to get in-track on-planet views
-        based on elevation angle, scene altitude, limb angles, azimuth angles, and quality flags.
+        based on elevation angle, scene altitude, limb angles,
+        azimuth angles, and quality flags.
 
-        *Could have option to average together  
+        *Could have option to average together
         """
         pipe = L1BDataPipeline()
         df = pipe.add_datetime_column(df)  # add datetimes
-        df = pipe.select_range(df, "Scene_alt", *self.scene_alt_range) #apply scene_alt constraint 
+        df = pipe.select_range(
+            df, "Scene_alt", *self.scene_alt_range
+        )  # apply scene_alt constraint
         df = pipe.select_range(df, "Last_el_cmd", *self.elevation_angle_range)
-        df = pipe.select_limb_angle_range(df, *self.limb_angle_range)  # apply limb angle constraint
+        df = pipe.select_limb_angle_range(
+            df, *self.limb_angle_range
+        )  # apply limb angle constraint
         df = pipe.select_Gqual(df, flag_values=self.gqual)
         df = pipe.select_Rolling(df, flag_values=self.rolling)
         df = pipe.select_Moving(df, flag_values=self.moving)
@@ -38,6 +44,7 @@ class L1BOnPlanetInTrack:
         df = pipe.select_direction(df, "in")
         df = pipe.add_LTST_column(df)
         return df
+
 
 class L1BStandardInTrack:
     def __init__(
