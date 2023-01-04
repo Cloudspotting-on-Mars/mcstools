@@ -2,6 +2,42 @@ from preprocess.data_pipeline import L1BDataPipeline
 
 # TODO: @classmethod() from_config() option to setup processer
 
+class L1BOnPlanetInTrack:
+    def __init__(
+        self,
+        scene_alt_range=(-0.01, 0.01),
+        elevation_angle_range=(114, 180),
+        limb_angle_range=(-9, 9),
+        gqual=[0, 5, 6],
+        rolling=[0],
+        moving=[0],
+    ):
+        self.scene_alt_range = scene_alt_range
+        self.elevation_angle_range= elevation_angle_range
+        self.limb_angle_range = limb_angle_range
+        self.gqual = gqual
+        self.rolling = rolling
+        self.moving = moving
+
+    def preprocess(self, df):
+        """
+        From loaded L1b data, preprocess to get in-track on-planet views
+        based on elevation angle, scene altitude, limb angles, azimuth angles, and quality flags.
+
+        *Could have option to average together  
+        """
+        pipe = L1BDataPipeline()
+        df = pipe.add_datetime_column(df)  # add datetimes
+        df = pipe.select_range(df, "Scene_alt", *self.scene_alt_range) #apply scene_alt constraint 
+        df = pipe.select_range(df, "Last_el_cmd", *self.elevation_angle_range)
+        df = pipe.select_limb_angle_range(df, *self.limb_angle_range)  # apply limb angle constraint
+        df = pipe.select_Gqual(df, flag_values=self.gqual)
+        df = pipe.select_Rolling(df, flag_values=self.rolling)
+        df = pipe.select_Moving(df, flag_values=self.moving)
+        df = pipe.add_direction_column(df)
+        df = pipe.select_direction(df, "in")
+        df = pipe.add_LTST_column(df)
+        return df
 
 class L1BStandardInTrack:
     def __init__(
@@ -47,6 +83,7 @@ class L1BStandardInTrack:
         df = pipe.select_Moving(df, flag_values=self.moving)
         df = pipe.add_direction_column(df)
         df = pipe.select_direction(df, "in")
+        df = pipe.add_LTST_column(df)
         # Average
         df_ave = pipe.average_limb_sequences(
             df, cols=None  # ["dt", "SC_rad", "Scene_alt", "Scene_rad"] + pipe.radcols
