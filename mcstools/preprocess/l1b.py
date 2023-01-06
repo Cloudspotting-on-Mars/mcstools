@@ -1,4 +1,4 @@
-from preprocess.data_pipeline import L1BDataPipeline
+from mcstools.preprocess.data_pipeline import L1BDataPipeline
 
 # TODO: @classmethod() from_config() option to setup processer
 

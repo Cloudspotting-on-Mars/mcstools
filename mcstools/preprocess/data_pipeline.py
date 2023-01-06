@@ -3,13 +3,18 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
-from detector_positions import DetectorPositions
-from mcsfile import L1BFile
 from scipy import interpolate
 from scipy.stats import circmean
-from util.geom import scattering_angle, spherical_coords_mcenter, spherical_to_cartesian
-from util.mars_time import ltst
-from util.time import convert_date_utcs
+
+from mcstools.detector_positions import DetectorPositions
+from mcstools.mcsfile import L1BFile
+from mcstools.util.geom import (
+    scattering_angle,
+    spherical_coords_mcenter,
+    spherical_to_cartesian,
+)
+from mcstools.util.mars_time import ltst
+from mcstools.util.time import convert_date_utcs
 
 
 class DataPipeline:

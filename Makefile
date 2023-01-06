@@ -1,4 +1,4 @@
-.PHONY:	black isort
+.PHONY:	black isort flake8 build 
 
 DIR=mcstools/
 
@@ -26,3 +26,7 @@ test-pytest:
 	pytest $(DIR)
 
 test:	test-isort test-black test-flake8 test-pytest
+
+build:
+	pip install wheel
+	python setup.py bdist_wheel

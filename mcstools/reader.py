@@ -4,9 +4,10 @@ import os
 import numpy as np
 import pandas as pd
 import requests
-from mcsfile import L1BFile, L2File
-from util.log import logger
-from util.time import GDS_DATE_FMT, PDS_DATE_FMT, add_datetime_column
+
+from mcstools.mcsfile import L1BFile, L2File
+from mcstools.util.log import logger
+from mcstools.util.time import GDS_DATE_FMT, PDS_DATE_FMT, add_datetime_column
 
 
 class Reader:
