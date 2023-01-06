@@ -1,8 +1,9 @@
 import numpy as np
 import pytest
-from data_path_handler import FilenameBuilder
-from mcsfile import L1BFile, L2File
-from reader import L1BReader, L2Reader
+
+from mcstools.data_path_handler import FilenameBuilder
+from mcstools.mcsfile import L1BFile, L2File
+from mcstools.reader import L1BReader, L2Reader
 
 
 @pytest.fixture()

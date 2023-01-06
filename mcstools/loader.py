@@ -2,10 +2,11 @@ import datetime as dt
 
 import dask.dataframe as dd
 import pandas as pd
-import util.mars_time as mt
 from dask import delayed
-from data_path_handler import FilenameBuilder
-from reader import L1BReader, L2Reader
+
+import mcstools.util.mars_time as mt
+from mcstools.data_path_handler import FilenameBuilder
+from mcstools.reader import L1BReader, L2Reader
 
 
 class L1BLoader:

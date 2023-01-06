@@ -1,5 +1,6 @@
 import pytest
-from util.geom import scattering_angle, spherical_to_cartesian
+
+from mcstools.util.geom import scattering_angle, spherical_to_cartesian
 
 
 def test_s2c(sphere_coords, cart_coords):

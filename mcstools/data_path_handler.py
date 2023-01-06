@@ -2,8 +2,9 @@ import datetime as dt
 import os
 
 import pandas as pd
-from util.mars_time import MarsDate
-from util.time import GDS_DATE_FMT, round_to_x_hour
+
+from mcstools.util.mars_time import MarsDate
+from mcstools.util.time import GDS_DATE_FMT, round_to_x_hour
 
 # TODO: check_file_exists shouldn't be part of path handler, should be part of loader
 # TODO: make_n_before_after(f, before, after)
