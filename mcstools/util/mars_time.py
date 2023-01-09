@@ -157,7 +157,7 @@ class MarsDate:
     @classmethod
     def from_dt(cls, dt: dt.datetime):
         """Create mars date from datetime object"""
-        my, ls = mt.dt_to_MY_Ls(dt)
+        my, ls = dt_to_MY_Ls(dt)
         return cls(int(my), ls)
 
     @classmethod
@@ -167,7 +167,7 @@ class MarsDate:
         return cls(int(my), float(ls))
 
     def to_UTC(self, Ls_thresh: float = 0.001):
-        return mt.MY_Ls_to_UTC(self.my, self.ls, Ls_thresh=Ls_thresh)
+        return MY_Ls_to_UTC(self.my, self.ls, Ls_thresh=Ls_thresh)
 
     def to_str(self):
         return "MY" + str(self.my) + "Ls" + str(int(round(self.ls))).zfill(3)

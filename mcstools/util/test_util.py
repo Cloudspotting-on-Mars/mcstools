@@ -17,3 +17,15 @@ def test_scattering_angle(cart_coords):
     """
     assert pytest.approx(scattering_angle(cart_coords, -cart_coords)) == 0.0
     assert pytest.approx(scattering_angle(cart_coords, cart_coords)) == 180.0
+
+
+def test_marsdate_to_utc(marsdate):
+    md_utc = marsdate.to_UTC()
+    assert md_utc.year == 2016
+    assert md_utc.month == 7
+
+def test_marsdate_to_str(marsdate):
+    md_str = marsdate.__str__()
+    assert md_str=="MY33Ls180"
+
+
