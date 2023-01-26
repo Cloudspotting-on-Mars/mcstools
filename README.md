@@ -35,9 +35,16 @@ df = reader.read(url)
 
 #### Load Data from PDS
 To load data from PDS:
-```
+```python
 from mcstools import L1BLoader
 loader = L1BLoader(pds=True)
 df = loader.load_date_range("2016-01-01", "2016-01-02")
 ```
 
+### Preprocess data
+To preprocess L1B data and reduce to standard in-track limb views:
+```python
+from mcstools.preprocess.l1b import L1BStandardInTrack
+preprocesser = L1BStandardInTrack()
+df = preprocesser.process(df)
+```
