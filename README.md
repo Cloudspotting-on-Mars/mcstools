@@ -4,20 +4,33 @@ Tools to read and process Mars Climate Sounder files.
 #### Setup
 Download or clone the repo:
 ```bash
+$ pip install mcstools
+```
+
+or
+
+```bash
 $ git clone https://github.com/cloudspotting-on-mars/com-analysis-tools
 ```
 
 Setup a virtual environment with `python3 -m venv env` and install with `pip install -e .`
 
 #### Download data
-See https://pds-atmospheres.nmsu.edu/data_and_services/atmospheres_data/MARS/atmosphere_temp_prof.html
+MCS data is available on the PDS at: https://pds-atmospheres.nmsu.edu/data_and_services/atmospheres_data/MARS/atmosphere_temp_prof.html
 
 #### Read a single file
 To read in an L1B file as a DataFrame:
-```
+```python
 from mcstools import L1BReader
 reader = L1BReader()
-reader.read(path_to_file)
+df = reader.read(path_to_file)
+```
+or to read from the PDS:
+
+```python
+from mcstools import L1BReader
+reader = L1BReader(pds=True)
+df = reader.read(url)
 ```
 
 #### Load Data from PDS
@@ -25,5 +38,6 @@ To load data from PDS:
 ```
 from mcstools import L1BLoader
 loader = L1BLoader(pds=True)
-loader.load_date_range("2016-01-01", "2016-01-02")
+df = loader.load_date_range("2016-01-01", "2016-01-02")
 ```
+
