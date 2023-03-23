@@ -535,7 +535,7 @@ class DetectorPositions:
         df = pd.DataFrame(
             index=pd.MultiIndex.from_product(
                 [input_el_az.index, positions.index, channel_index]), columns=[colname]).reset_index()
-        if op_offset = "subtract":
+        if op_offset == "subtract":
             df[colname] = df.apply(lambda row: input_el_az.loc[row[input_el_az.index.name]] - positions.loc[row["Detector"], row["Channel"]], axis=1)
         else:
             df[colname] = df.apply(lambda row: input_el_az.loc[row[input_el_az.index.name]] - positions.loc[row["Detector"], row["Channel"]], axis=1)
