@@ -538,7 +538,7 @@ class DetectorPositions:
         if op_offset == "subtract":
             df[colname] = df.apply(lambda row: input_el_az.loc[row[input_el_az.index.name]] - positions.loc[row["Detector"], row["Channel"]], axis=1)
         else:
-            df[colname] = df.apply(lambda row: input_el_az.loc[row[input_el_az.index.name]] - positions.loc[row["Detector"], row["Channel"]], axis=1)
+            df[colname] = df.apply(lambda row: input_el_az.loc[row[input_el_az.index.name]] + positions.loc[row["Detector"], row["Channel"]], axis=1)
         df["CH_DT"] = df["Channel"] + "_" + df["Detector"].astype(str).str.zfill(2)
         df_pivot = df.pivot(index=input_el_az.index.name, columns="CH_DT", values=colname)
         return df_pivot
