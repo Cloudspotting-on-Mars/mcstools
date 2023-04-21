@@ -5,6 +5,7 @@ class MCSFile:
     """
     Base class for MCS file metadata
     """
+
     ndetectors = 21  # number of detectors
     detector_range = np.arange(1, ndetectors + 1, 1)
     # Detector numbers in increasing altitude

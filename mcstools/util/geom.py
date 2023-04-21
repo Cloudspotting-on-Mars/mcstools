@@ -23,6 +23,7 @@ def spherical_to_cartesian(spher_vec: np.array) -> np.array:
         ]
     )
 
+
 def mcs_view_angle_to_sc_body_frame(elevation_angle, azimuth_angle):
     """
     Convert mcs view to spacecraft body frame given elevation
@@ -30,9 +31,10 @@ def mcs_view_angle_to_sc_body_frame(elevation_angle, azimuth_angle):
     Angles given in degrees.
     """
     r = 1
-    theta = (180 - elevation_angle)*np.pi/180
-    phi = (azimuth_angle - 180)*np.pi/180
+    theta = (180 - elevation_angle) * np.pi / 180
+    phi = (azimuth_angle - 180) * np.pi / 180
     return spherical_to_cartesian(np.array([r, theta, phi]))
+
 
 def scattering_angle(solar_incidence_vector, view_vector):
     """

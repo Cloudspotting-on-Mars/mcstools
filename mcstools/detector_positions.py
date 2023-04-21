@@ -522,7 +522,13 @@ class DetectorPositions:
         )
         return data_alts
 
-    def make_fov_df(self, input_el_az: pd.Series, op_offset="add", el_az: str="Elevation", colname: str="Elevation_angle"):
+    def make_fov_df(
+        self,
+        input_el_az: pd.Series,
+        op_offset="add",
+        el_az: str = "Elevation",
+        colname: str = "Elevation_angle",
+    ):
         """
         input_el_az: series of boresight elevatin/azimuth angles in radians
         """
@@ -534,11 +540,24 @@ class DetectorPositions:
         channel_index.name = "Channel"
         df = pd.DataFrame(
             index=pd.MultiIndex.from_product(
-                [input_el_az.index, positions.index, channel_index]), columns=[colname]).reset_index()
+                [input_el_az.index, positions.index, channel_index]
+            ),
+            columns=[colname],
+        ).reset_index()
         if op_offset == "subtract":
-            df[colname] = df.apply(lambda row: input_el_az.loc[row[input_el_az.index.name]] - positions.loc[row["Detector"], row["Channel"]], axis=1)
+            df[colname] = df.apply(
+                lambda row: input_el_az.loc[row[input_el_az.index.name]]
+                - positions.loc[row["Detector"], row["Channel"]],
+                axis=1,
+            )
         else:
-            df[colname] = df.apply(lambda row: input_el_az.loc[row[input_el_az.index.name]] + positions.loc[row["Detector"], row["Channel"]], axis=1)
+            df[colname] = df.apply(
+                lambda row: input_el_az.loc[row[input_el_az.index.name]]
+                + positions.loc[row["Detector"], row["Channel"]],
+                axis=1,
+            )
         df["CH_DT"] = df["Channel"] + "_" + df["Detector"].astype(str).str.zfill(2)
-        df_pivot = df.pivot(index=input_el_az.index.name, columns="CH_DT", values=colname)
+        df_pivot = df.pivot(
+            index=input_el_az.index.name, columns="CH_DT", values=colname
+        )
         return df_pivot
