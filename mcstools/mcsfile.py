@@ -327,7 +327,7 @@ class L2File(MCSFile):
     """
 
     file_suffix = "L2_2d"
-    nan_values = [-9999, ""]  # values to treat as NaNs
+    nan_values = [-9999, "", "-9999"]  # values to treat as NaNs
     comments = []  # initialize header comments
     data_records = {
         "DDR1": {
