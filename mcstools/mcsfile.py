@@ -6,6 +6,13 @@ class MCSFile:
     Base class for MCS file metadata
     """
 
+    ndetectors = 21  # number of detectors
+    detector_range = np.arange(1, ndetectors + 1, 1)
+    # Detector numbers in increasing altitude
+    detectors = {"A": np.flipud(detector_range), "B": detector_range}
+    # Channel names
+    channels = [f"A{x}" for x in range(1, 7)] + [f"B{x}" for x in range(1, 4)]
+
     def __init__(self):
         pass
 
@@ -320,7 +327,7 @@ class L2File(MCSFile):
     """
 
     file_suffix = "L2_2d"
-    nan_values = [-9999, ""]  # values to treat as NaNs
+    nan_values = [-9999, "", "-9999"]  # values to treat as NaNs
     comments = []  # initialize header comments
     data_records = {
         "DDR1": {
