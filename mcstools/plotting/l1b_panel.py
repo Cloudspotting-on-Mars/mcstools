@@ -2,6 +2,7 @@ import click
 import cmcrameri.cm as cm
 import hvplot.xarray  # noqa
 import panel as pn
+
 from mcstools.loader import L1BLoader
 from mcstools.preprocess.l1b import L1BStandardInTrack
 from mcstools.reader import L1BReader
@@ -39,12 +40,17 @@ def all_plots(df_ave):
         for d, c in zip(cdata, reader.channels)
     ]  # make all plots
     cbar_sliders = [
-        pn.widgets.RangeSlider(start=rad.min().item(), end=rad.max().item(), orientation="vertical", direction="rtl")
+        pn.widgets.RangeSlider(
+            start=rad.min().item(),
+            end=rad.max().item(),
+            orientation="vertical",
+            direction="rtl",
+        )
         for rad in cdata
     ]  # create sliders for colorbar
     js_codes = (
         [
-        """
+            """
         color_mapper.low = cb_obj.value[0];
         color_mapper.high = cb_obj.value[1];
         """
@@ -58,7 +64,9 @@ def all_plots(df_ave):
     rows = [
         pn.Row(p, c, sizing_mode="stretch_both") for p, c in zip(plots, cbar_sliders)
     ]  # create plot/slider combo for ecah channel
-    return pn.Tabs(*zip(reader.channels, rows),sizing_mode="stretch_both")  # make tab for each channel dash
+    return pn.Tabs(
+        *zip(reader.channels, rows), sizing_mode="stretch_both"
+    )  # make tab for each channel dash
 
 
 @click.command()

@@ -54,9 +54,10 @@ def scattering_angle(solar_incidence_vector, view_vector):
         )
     )
 
+
 def haversine_dist(lat1, lon1, lat2, lon2, radius=None):
     """Calculate the great circle distance between lat/lon pairs. Specify params in degrees.
-    
+
     If `radius` is None (default), returned value will be great circle distance
     in radians. If it's specified, value will be multiplied by result (e.g., to
     get great circle distance in kilometers)
@@ -69,13 +70,15 @@ def haversine_dist(lat1, lon1, lat2, lon2, radius=None):
     dlat = lat2 - lat1
     dlon = lon2 - lon1
 
-    a = np.sin(dlat / 2) ** 2 + \
-        (1 - np.sin(dlat / 2) ** 2 - np.sin((lat1 + lat2) / 2) ** 2) * \
-        np.sin(dlon / 2) ** 2
+    a = (
+        np.sin(dlat / 2) ** 2
+        + (1 - np.sin(dlat / 2) ** 2 - np.sin((lat1 + lat2) / 2) ** 2)
+        * np.sin(dlon / 2) ** 2
+    )
 
     c = 2 * np.arcsin(np.sqrt(a))
 
     if radius is None:
-        return c 
+        return c
     else:
         return radius * c

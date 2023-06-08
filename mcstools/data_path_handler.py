@@ -145,7 +145,12 @@ class PDSFileFormatter(FileFormatterBase):
 
 class DirectoryFileFormatter(FileFormatterBase):
 
-    level_dir_map = {"L1B": "level_1b", "L2": "level_2_2d", "L1A": "level_1a", "unpacked": "unpacked"}
+    level_dir_map = {
+        "L1B": "level_1b",
+        "L2": "level_2_2d",
+        "L1A": "level_1a",
+        "unpacked": "unpacked",
+    }
     level_suffix_map = {"L1B": "L1B", "L2": "L2", "L1A": "L1A", "unpacked": "tab"}
 
     def __init__(self, level: str, mcs_data_path: str):
@@ -183,7 +188,9 @@ class DirectoryFileFormatter(FileFormatterBase):
 
     def build_filename_from_filestr(self, filestr: str):
         path = os.path.join(
-            self.level_directory, filestr[0:4], f"{filestr}.{self.level_suffix_map[self.level]}"
+            self.level_directory,
+            filestr[0:4],
+            f"{filestr}.{self.level_suffix_map[self.level]}",
         )
         return path
 
