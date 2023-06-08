@@ -2,9 +2,9 @@ import click
 import cmcrameri.cm as cm
 import hvplot.xarray  # noqa
 import panel as pn
-from loader import L1BLoader
-from preprocess.l1b import L1BStandardInTrack
-from reader import L1BReader
+from mcstools.loader import L1BLoader
+from mcstools.preprocess.l1b import L1BStandardInTrack
+from mcstools.reader import L1BReader
 
 
 def plot(data):
@@ -14,6 +14,8 @@ def plot(data):
     p = data.hvplot.quadmesh(
         "dt",
         "Detector",
+        width=1200,
+        height=600,
     )
     return p
 
@@ -37,12 +39,12 @@ def all_plots(df_ave):
         for d, c in zip(cdata, reader.channels)
     ]  # make all plots
     cbar_sliders = [
-        pn.widgets.RangeSlider(start=rad.min().item(), end=rad.max().item())
+        pn.widgets.RangeSlider(start=rad.min().item(), end=rad.max().item(), orientation="vertical", direction="rtl")
         for rad in cdata
     ]  # create sliders for colorbar
     js_codes = (
         [
-            """
+        """
         color_mapper.low = cb_obj.value[0];
         color_mapper.high = cb_obj.value[1];
         """
@@ -54,9 +56,9 @@ def all_plots(df_ave):
         for w, p, jsc in zip(cbar_sliders, plots, js_codes)
     ]  # link each slider to corresponding plot
     rows = [
-        pn.Row(p, c) for p, c in zip(plots, cbar_sliders)
+        pn.Row(p, c, sizing_mode="stretch_both") for p, c in zip(plots, cbar_sliders)
     ]  # create plot/slider combo for ecah channel
-    return pn.Tabs(*zip(reader.channels, rows))  # make tab for each channel dash
+    return pn.Tabs(*zip(reader.channels, rows),sizing_mode="stretch_both")  # make tab for each channel dash
 
 
 @click.command()
