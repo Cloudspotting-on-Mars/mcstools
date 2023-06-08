@@ -58,6 +58,10 @@ class L1BLoader:
         data = data[(data["dt"] >= start_time) & (data["dt"] < end_time)]
         return data
 
+    def load_from_filestr(self, filestr, **kwargs):
+        file = self.filename_builder.make_filename_from_filestr(filestr)
+        return self.load(file, **kwargs)
+
     def load_files_around_date(self, date, n=1, **kwargs):
         files, _ = self.find_files_around_date(date, n)
         return self.load(files, *kwargs)
