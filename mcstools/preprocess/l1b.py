@@ -38,8 +38,10 @@ class L1BOnPlanetInTrack:
             df, *self.limb_angle_range
         )  # apply limb angle constraint
         df = pipe.select_Gqual(df, flag_values=self.gqual)
-        df = pipe.select_Rolling(df, flag_values=self.rolling)
-        df = pipe.select_Moving(df, flag_values=self.moving)
+        if len(self.rolling) > 0:
+            df = pipe.select_Rolling(df, flag_values=self.rolling)
+        if len(self.moving) > 0:
+            df = pipe.select_Moving(df, flag_values=self.moving)
         df = pipe.add_direction_column(df)
         df = pipe.select_direction(df, "in")
         df = pipe.add_LTST_column(df)
@@ -86,8 +88,10 @@ class L1BStandardInTrack:
             df, min_ang=self.limb_angle_range[0], max_ang=self.limb_angle_range[1]
         )
         df = pipe.select_Gqual(df, flag_values=self.gqual)
-        df = pipe.select_Rolling(df, flag_values=self.rolling)
-        df = pipe.select_Moving(df, flag_values=self.moving)
+        if len(self.rolling) > 0:
+            df = pipe.select_Rolling(df, flag_values=self.rolling)
+        if len(self.moving) > 0:
+            df = pipe.select_Moving(df, flag_values=self.moving)
         df = pipe.add_direction_column(df)
         df = pipe.select_direction(df, "in")
         df = pipe.add_LTST_column(df)
