@@ -16,20 +16,52 @@ class MCSFile:
     def __init__(self):
         pass
 
-
-class L1BFile(MCSFile):
+class L1BLikeFile(MCSFile):
     """
-    Class for MCS L1B metadata and methods to access
+    Class for MCS L1B-like file metadata and methods to access
     metadata (data columns, header comments, channels, detectors).
     """
-
-    file_suffix = "L1B"
+    file_suffix = None
+    # column names L1B file
+    columns = []
     ndetectors = 21  # number of detectors
     detector_range = np.arange(1, ndetectors + 1, 1)
     # Detector numbers in increasing altitude
     detectors = {"A": np.flipud(detector_range), "B": detector_range}
     # Channel names
     channels = [f"A{x}" for x in range(1, 7)] + [f"B{x}" for x in range(1, 4)]
+    comment_line_character = "#"
+    nan_values = [-9999, ""]  # NAN values in data
+    radcols = [x for x in columns if "Rad_" in x]  # subset of Radiance columns
+    dtypes = {x: float for x in radcols}
+
+
+    def make_rad_col_name(self, channel: str, detector: int) -> str:
+        return f"Rad_{channel}_{str(int(detector)).zfill(2)}"
+
+    def make_rad_col_names(self, channel: str) -> list:
+        """
+        Return column names of each detector for given radiance channel
+
+        Parameters
+        ----------
+        channel (str): Channel name (ex, "A6")
+
+        Returns
+        -------
+        (list): list of all channel-detector columns (ex, "Rad_A6_11")
+        """
+        return [self.make_rad_col_name(channel, d) for d in self.detector_range]
+
+
+class L1BFile(L1BLikeFile):
+    """
+    Class for MCS L1B metadata and methods to access
+    metadata (data columns, header comments, channels, detectors).
+    """
+
+    file_suffix = "L1B"
+    
     # column names L1B file
     columns = [
         "1",
@@ -293,30 +325,11 @@ class L1BFile(MCSFile):
         "Rad_B3_20",
         "Rad_B3_21",
     ]
-    comment_line_character = "#"
-    nan_values = [-9999, ""]  # NAN values in data
-    radcols = [x for x in columns if "Rad_" in x]  # subset of Radiance columns
-    dtypes = {x: float for x in radcols}
+    
 
     def __init__(self):
         super().__init__()
 
-    def make_rad_col_name(self, channel: str, detector: int) -> str:
-        return f"Rad_{channel}_{str(int(detector)).zfill(2)}"
-
-    def make_rad_col_names(self, channel: str) -> list:
-        """
-        Return column names of each detector for given radiance channel
-
-        Parameters
-        ----------
-        channel (str): Channel name (ex, "A6")
-
-        Returns
-        -------
-        (list): list of all channel-detector columns (ex, "Rad_A6_11")
-        """
-        return [self.make_rad_col_name(channel, d) for d in self.detector_range]
 
 
 class L2File(MCSFile):
