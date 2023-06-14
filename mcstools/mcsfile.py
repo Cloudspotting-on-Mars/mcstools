@@ -23,7 +23,6 @@ class L1BLikeFile(MCSFile):
     """
     file_suffix = None
     # column names L1B file
-    columns = []
     ndetectors = 21  # number of detectors
     detector_range = np.arange(1, ndetectors + 1, 1)
     # Detector numbers in increasing altitude
@@ -31,9 +30,7 @@ class L1BLikeFile(MCSFile):
     # Channel names
     channels = [f"A{x}" for x in range(1, 7)] + [f"B{x}" for x in range(1, 4)]
     comment_line_character = "#"
-    nan_values = [-9999, ""]  # NAN values in data
-    radcols = [x for x in columns if "Rad_" in x]  # subset of Radiance columns
-    dtypes = {x: float for x in radcols}
+    nan_values = [-9999, "", "-9999"]  # NAN values in data
 
 
     def make_rad_col_name(self, channel: str, detector: int) -> str:
@@ -325,7 +322,8 @@ class L1BFile(L1BLikeFile):
         "Rad_B3_20",
         "Rad_B3_21",
     ]
-    
+    radcols = [x for x in columns if "Rad_" in x]  # subset of Radiance columns
+    dtypes = {x: float for x in radcols}    
 
     def __init__(self):
         super().__init__()
