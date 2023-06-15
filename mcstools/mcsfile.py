@@ -16,11 +16,13 @@ class MCSFile:
     def __init__(self):
         pass
 
+
 class L1BLikeFile(MCSFile):
     """
     Class for MCS L1B-like file metadata and methods to access
     metadata (data columns, header comments, channels, detectors).
     """
+
     file_suffix = None
     # column names L1B file
     ndetectors = 21  # number of detectors
@@ -31,7 +33,6 @@ class L1BLikeFile(MCSFile):
     channels = [f"A{x}" for x in range(1, 7)] + [f"B{x}" for x in range(1, 4)]
     comment_line_character = "#"
     nan_values = [-9999, "", "-9999"]  # NAN values in data
-
 
     def make_rad_col_name(self, channel: str, detector: int) -> str:
         return f"Rad_{channel}_{str(int(detector)).zfill(2)}"
@@ -58,7 +59,7 @@ class L1BFile(L1BLikeFile):
     """
 
     file_suffix = "L1B"
-    
+
     # column names L1B file
     columns = [
         "1",
@@ -323,11 +324,10 @@ class L1BFile(L1BLikeFile):
         "Rad_B3_21",
     ]
     radcols = [x for x in columns if "Rad_" in x]  # subset of Radiance columns
-    dtypes = {x: float for x in radcols}    
+    dtypes = {x: float for x in radcols}
 
     def __init__(self):
         super().__init__()
-
 
 
 class L2File(MCSFile):
