@@ -27,3 +27,15 @@ from mcstools import L1BLoader
 loader = L1BLoader(pds=True)
 loader.load_date_range("2016-01-01", "2016-01-02")
 ```
+
+#### Plot L1B radiances
+To view the radiances for a single 4-hour L1B file, run
+```
+python mcstools/plotting/l1b_panel.py
+```
+
+That should bring up a dashboard in a browser allowing you to choose a 4-hour file at the top
+(enter the date in `YYMMDDHH0000` format).
+You can switch between channels using the tabs.
+The slider on the right allows you to set the colorbar limits (radiance units).
+There are also tools to zoom in and out, pan, etc.
