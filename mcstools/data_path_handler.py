@@ -112,15 +112,20 @@ class PDSFileFormatter(FileFormatterBase):
         monthstr = filedt.strftime("%m")
         daystr = filedt.strftime("%d")
         hourstr = filedt.strftime("%H")
-        return os.path.join(
+        filename = os.path.join(
             self.url_base,
             mromstr,
             "DATA",
             yearstr,
             f"{yearstr}{monthstr}",
             f"{yearstr}{monthstr}{daystr}",
-            f"{yearstr}{monthstr}{daystr}{hourstr}_{self.data_record}.TAB",
         )
+        filename = os.path.join(
+            filename,
+            f"{yearstr}{monthstr}{daystr}{hourstr}"
+        )
+        filename += (f"_{self.data_record}.TAB")
+        return filename
 
     def build_mromstr(self, date: dt.datetime):
         if self.level in ["L2", "L22D", "L2_2D", "DDR"]:

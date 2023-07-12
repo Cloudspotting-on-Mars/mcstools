@@ -65,7 +65,7 @@ class L1BStandardInTrack:
         self.rolling = rolling
         self.moving = moving
 
-    def preprocess(self, df):
+    def preprocess(self, df, average_sequences=True):
         """
         From loaded L1b data, preprocess to get standard limb in-track values
         based on range of Scene alts, limb angles, azimuth angles, and quality flags.
@@ -95,12 +95,14 @@ class L1BStandardInTrack:
         df = pipe.add_direction_column(df)
         df = pipe.select_direction(df, "in")
         df = pipe.add_LTST_column(df)
+        if average_sequences:
         # Average
-        df_ave = pipe.average_limb_sequences(
-            df, cols=None  # ["dt", "SC_rad", "Scene_alt", "Scene_rad"] + pipe.radcols
-        )
-        df_ave = df_ave.reset_index().drop(columns="sequence_label")
-        return df_ave
+            df = pipe.average_limb_sequences(
+                df, cols=None  # ["dt", "SC_rad", "Scene_alt", "Scene_rad"] + pipe.radcols
+            )
+            df = df.reset_index()
+        df = df.drop(columns="sequence_label")
+        return df
 
     def melt_to_xarray(self, df):
         """
