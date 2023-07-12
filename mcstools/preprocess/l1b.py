@@ -111,3 +111,6 @@ class L1BStandardInTrack:
         df = pipe.melt_channel_detector_radiance(df.reset_index())
         df = df.set_index(["dt", "Detector", "Channel"])[["Radiance"]].to_xarray()
         return df
+
+class L1BGravityWaveLimbViews(L1BStandardInTrack):
+    pass
