@@ -115,4 +115,41 @@ class L1BStandardInTrack:
         return df
 
 class L1BGravityWaveLimbViews(L1BStandardInTrack):
-    pass
+    def preprocess(self, df, average_sequences=True):
+        pipe = L1BDataPipeline()
+        df = pipe.add_datetime_column(df)
+        df = pipe.select_limb_views(
+            df,
+            min_alt=self.limb_scene_alt_range[0],
+            max_alt=self.limb_scene_alt_range[1],
+        )
+        df = pipe.add_first_limb_cols(
+            df, min_sec_between=self.first_limb_col_sec_between
+        )
+        df = pipe.add_limb_view_label(df)
+        df = pipe.group_consecutive_rows_as_sequence(df)
+        df = df.dropna(subset=["sequence_label"])
+        df = pipe.select_limb_angle_range(
+            df, min_ang=self.limb_angle_range[0], max_ang=self.limb_angle_range[1]
+        )
+        df = pipe.select_Gqual(df, flag_values=self.gqual)
+        if len(self.rolling) > 0:
+            df = pipe.select_Rolling(df, flag_values=self.rolling)
+        if len(self.moving) > 0:
+            df = pipe.select_Moving(df, flag_values=self.moving)
+        df = pipe.add_direction_column(df)
+        df = pipe.select_direction(df, "in")
+        df = pipe.add_LTST_column(df)
+        drop_seqs = []
+        for seq_label, seq_group in df.groupby("sequence_label"):
+            if seq_group.shape[0] < 5:
+                drop_seqs.append(seq_label)
+        df = df[~df["sequence_label"].isin(drop_seqs)]
+        if average_sequences:
+            # Average
+            df = pipe.average_limb_sequences(
+                df, cols=None
+            )
+            df = df.reset_index()
+        df = df.drop(columns="sequence_label")
+        return df

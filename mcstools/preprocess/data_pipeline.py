@@ -252,6 +252,36 @@ class L1BDataPipeline(DataPipeline):
             return self.pass_empty_df(df)
         return df[~df["first_three_limb"]]  # keep rows where this column is False
 
+    def add_limb_view_label(self, df: pd.DataFrame) -> pd.DataFrame:
+        if len(df.index) == 0:
+            return self.pass_empty_df(df, ["limb_view_label"])
+        lv_counter = 0
+        lv_col = []
+        for i, row in df.iterrows():
+            if row["first_limb"]:
+                lv_counter = 1
+            else:
+                lv_counter += 1
+            lv_col.append(lv_counter)
+        df["limb_view_label"] = lv_col
+        return df
+
+    def group_consecutive_rows_as_sequence(self, df:pd.DataFrame, consecutive: int=5, offset_from_first=3) -> pd.DataFrame:
+        if len(df.index) == 0:
+            return self.pass_empty_df(df, ["sequence_label"])
+        seq_counter = 0  # initialize seq counter
+        seq_number_col = []  # intialize list of labeled sequences
+        for i, row in df.iterrows():
+            if row["limb_view_label"] <= offset_from_first:
+                seq_number_col.append(np.nan)
+            else:
+                seq_number_col.append(seq_counter)
+                if (row["limb_view_label"] - offset_from_first) % consecutive == 0:
+                    seq_counter += 1
+            
+        df["sequence_label"] = seq_number_col
+        return df
+
     def add_sequence_column(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Add a column to group sequences together by a common index.
