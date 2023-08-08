@@ -4,7 +4,7 @@ Tools to read and process Mars Climate Sounder files.
 #### Setup
 Download or clone the repo:
 ```bash
-$ git clone https://github.com/cloudspotting-on-mars/com-analysis-tools
+$ git clone https://github.com/cloudspotting-on-mars/mcstools
 ```
 
 Setup a virtual environment with `python3 -m venv env` and install with `pip install -e .`
