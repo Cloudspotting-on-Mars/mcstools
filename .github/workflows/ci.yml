@@ -41,5 +41,5 @@ jobs:
       
       - name: test
         run: |
-          pip install -e . [dev]
+          pip install -e .[dev]
           make test
