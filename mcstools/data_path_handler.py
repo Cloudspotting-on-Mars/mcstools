@@ -1,8 +1,6 @@
 import datetime as dt
 import os
 
-from urllib.parse import urljoin
-
 import pandas as pd
 
 from mcstools.util.mars_time import MarsDate
