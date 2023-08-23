@@ -40,5 +40,6 @@ jobs:
           TWINE_REPOSITORY: testpypi
       
       - name: test
-        run: pip install -e . [dev]
-        run: make test
+        run: |
+          pip install -e . [dev]
+          make test
