@@ -39,3 +39,11 @@ That should bring up a dashboard in a browser allowing you to choose a 4-hour fi
 You can switch between channels using the tabs.
 The slider on the right allows you to set the colorbar limits (radiance units).
 There are also tools to zoom in and out, pan, etc.
+
+#### Preprocess data
+To preprocess L1B data and reduce to standard in-track limb views:
+```python
+from mcstools.preprocess.l1b import L1BStandardInTrack
+preprocesser = L1BStandardInTrack()
+df = preprocesser.process(df)
+```
