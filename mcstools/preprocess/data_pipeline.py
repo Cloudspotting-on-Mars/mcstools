@@ -266,7 +266,9 @@ class L1BDataPipeline(DataPipeline):
         df["limb_view_label"] = lv_col
         return df
 
-    def group_consecutive_rows_as_sequence(self, df:pd.DataFrame, consecutive: int=5, offset_from_first=3) -> pd.DataFrame:
+    def group_consecutive_rows_as_sequence(
+        self, df: pd.DataFrame, consecutive: int = 5, offset_from_first=3
+    ) -> pd.DataFrame:
         if len(df.index) == 0:
             return self.pass_empty_df(df, ["sequence_label"])
         seq_counter = 0  # initialize seq counter
@@ -278,7 +280,7 @@ class L1BDataPipeline(DataPipeline):
                 seq_number_col.append(seq_counter)
                 if (row["limb_view_label"] - offset_from_first) % consecutive == 0:
                     seq_counter += 1
-            
+
         df["sequence_label"] = seq_number_col
         return df
 

@@ -120,11 +120,8 @@ class PDSFileFormatter(FileFormatterBase):
             f"{yearstr}{monthstr}",
             f"{yearstr}{monthstr}{daystr}",
         )
-        filename = os.path.join(
-            filename,
-            f"{yearstr}{monthstr}{daystr}{hourstr}"
-        )
-        filename += (f"_{self.data_record}.TAB")
+        filename = os.path.join(filename, f"{yearstr}{monthstr}{daystr}{hourstr}")
+        filename += f"_{self.data_record}.TAB"
         return filename
 
     def build_mromstr(self, date: dt.datetime):

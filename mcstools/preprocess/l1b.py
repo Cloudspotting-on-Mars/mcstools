@@ -96,9 +96,10 @@ class L1BStandardInTrack:
         df = pipe.select_direction(df, "in")
         df = pipe.add_LTST_column(df)
         if average_sequences:
-        # Average
+            # Average
             df = pipe.average_limb_sequences(
-                df, cols=None  # ["dt", "SC_rad", "Scene_alt", "Scene_rad"] + pipe.radcols
+                df,
+                cols=None,  # ["dt", "SC_rad", "Scene_alt", "Scene_rad"] + pipe.radcols
             )
             df = df.reset_index()
         df = df.drop(columns="sequence_label")
@@ -113,6 +114,7 @@ class L1BStandardInTrack:
         df = pipe.melt_channel_detector_radiance(df.reset_index())
         df = df.set_index(["dt", "Detector", "Channel"])[["Radiance"]].to_xarray()
         return df
+
 
 class L1BGravityWaveLimbViews(L1BStandardInTrack):
     def preprocess(self, df, average_sequences=True):
@@ -147,9 +149,7 @@ class L1BGravityWaveLimbViews(L1BStandardInTrack):
         df = df[~df["sequence_label"].isin(drop_seqs)]
         if average_sequences:
             # Average
-            df = pipe.average_limb_sequences(
-                df, cols=None
-            )
+            df = pipe.average_limb_sequences(df, cols=None)
             df = df.reset_index()
         df = df.drop(columns="sequence_label")
         return df
