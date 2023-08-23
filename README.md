@@ -14,7 +14,7 @@ See https://pds-atmospheres.nmsu.edu/data_and_services/atmospheres_data/MARS/atm
 
 #### Read a single file
 To read in an L1B file as a DataFrame:
-```
+```python
 from mcstools import L1BReader
 reader = L1BReader()
 reader.read(path_to_file)
@@ -22,7 +22,7 @@ reader.read(path_to_file)
 
 #### Load Data from PDS
 To load data from PDS:
-```
+```python
 from mcstools import L1BLoader
 loader = L1BLoader(pds=True)
 loader.load_date_range("2016-01-01", "2016-01-02")
@@ -30,7 +30,7 @@ loader.load_date_range("2016-01-01", "2016-01-02")
 
 #### Plot L1B radiances
 To view the radiances for a single 4-hour L1B file, run
-```
+```bash
 python mcstools/plotting/l1b_panel.py
 ```
 
