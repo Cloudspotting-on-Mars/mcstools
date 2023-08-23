@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
   
 jobs:
-  build:
+  ci:
     runs-on: ubuntu-latest
     
     steps:
@@ -38,3 +38,6 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
           TWINE_REPOSITORY: testpypi
+      
+      - name: test
+        run: make test
