@@ -1,5 +1,5 @@
-# mcs-tools
-Tools to read and process Mars Climate Sounder files.
+# mcstools
+Tools to read and process Mars Climate Sounder data.
 
 #### Setup
 Download or clone the repo:
