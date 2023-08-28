@@ -112,15 +112,8 @@ class PDSFileFormatter(FileFormatterBase):
         monthstr = filedt.strftime("%m")
         daystr = filedt.strftime("%d")
         hourstr = filedt.strftime("%H")
-        filename = os.path.join(
-            self.url_base,
-            mromstr,
-            "DATA",
-            yearstr,
-            f"{yearstr}{monthstr}",
-            f"{yearstr}{monthstr}{daystr}",
-        )
-        filename = os.path.join(filename, f"{yearstr}{monthstr}{daystr}{hourstr}")
+        url_parts = [self.url_base,mromstr,"DATA",yearstr,f"{yearstr}{monthstr}",f"{yearstr}{monthstr}{daystr}",f"{yearstr}{monthstr}{daystr}{hourstr}"]
+        filename = '/'.join(url_parts)
         filename += f"_{self.data_record}.TAB"
         return filename
 
