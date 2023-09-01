@@ -1,4 +1,7 @@
+import xarray as xr
+
 from mcstools.preprocess.data_pipeline import L1BDataPipeline
+from mcstools.util.log import logger
 
 # TODO: @classmethod() from_config() option to setup processer
 
@@ -105,15 +108,20 @@ class L1BStandardInTrack:
         df = df.drop(columns="sequence_label")
         return df
 
-    def melt_to_xarray(self, df):
+    def melt_to_xarray(self, df, include_cols = ["Radiance", "Scene_lat", "Scene_lon"]):
         """
         Convert Dataframe of L1b radiances to xarray with coordinates:
         ["dt", "Detector", "Channel"].
         """
+        if "LTST" in include_cols and "LTST" not in df.columns:
+            logger.warning("LTST not in data columns, try adding first.")
         pipe = L1BDataPipeline()
-        df = pipe.melt_channel_detector_radiance(df.reset_index())
-        df = df.set_index(["dt", "Detector", "Channel"])[["Radiance"]].to_xarray()
-        return df
+        df_melted = pipe.melt_channel_detector_radiance(df.reset_index())
+        ds = df_melted.set_index(["dt", "Detector", "Channel"])[include_cols].to_xarray()
+        # Add time-dimension only columns
+        #df = df.set_index("dt")
+        #ds = ds.assign(Scene_lat = df["Scene_lat"].to_xarray(), Scene_lon=df["Scene_lon"])
+        return ds
 
 
 class L1BGravityWaveLimbViews(L1BStandardInTrack):

@@ -1,6 +1,7 @@
 import click
 import cmcrameri.cm as cm
 import hvplot.xarray  # noqa
+import holoviews as hv
 import panel as pn
 
 from mcstools.loader import L1BLoader
@@ -12,11 +13,8 @@ def plot(data):
     """
     Plot radiances as a function of UTC and detector.
     """
-    p = data.hvplot.quadmesh(
-        "dt",
-        "Detector",
-        width=1200,
-        height=600,
+    p = hv.QuadMesh(data, kdims=["dt", "Detector"], vdims=["Radiance", "Scene_lat", "Scene_lon", "LTST"],
+
     )
     return p
 
@@ -27,7 +25,7 @@ def all_plots(df_ave):
     """
     reader = L1BReader()
     cdata = [
-        df_ave["Radiance"].sel(Channel=c) for c in reader.channels
+        df_ave.sel(Channel=c) for c in reader.channels
     ]  # get radiances for each channel
     plots = [
         plot(d).opts(
@@ -35,14 +33,17 @@ def all_plots(df_ave):
             shared_axes=False,
             cmap=cm.oslo,
             colorbar=True,
-            clim=(0, float(d.max().values)),
+            clim=(0, float(d["Radiance"].max().values)),
+            width=1200,
+            height=600,
+            tools=["hover"],
         )
         for d, c in zip(cdata, reader.channels)
     ]  # make all plots
     cbar_sliders = [
         pn.widgets.RangeSlider(
-            start=rad.min().item(),
-            end=rad.max().item(),
+            start=rad["Radiance"].min().item(),
+            end=rad["Radiance"].max().item(),
             orientation="vertical",
             direction="rtl",
         )
@@ -87,7 +88,7 @@ def main(filestr) -> None:
         processer = L1BStandardInTrack()  # initialize processer
         df = processer.preprocess(df)  # reduce to in-track sequence-averaged data
         df_xr = processer.melt_to_xarray(
-            df
+            df, include_cols=["Radiance", "Scene_lat", "Scene_lon", "LTST"]
         )  # melt radiance columns to individual detectors
         tabs = all_plots(df_xr)  # generate all plots
         view = pn.Column(
