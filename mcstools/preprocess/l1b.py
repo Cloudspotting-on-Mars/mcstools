@@ -1,5 +1,3 @@
-import xarray as xr
-
 from mcstools.preprocess.data_pipeline import L1BDataPipeline
 from mcstools.util.log import logger
 
@@ -108,7 +106,7 @@ class L1BStandardInTrack:
         df = df.drop(columns="sequence_label")
         return df
 
-    def melt_to_xarray(self, df, include_cols = ["Radiance", "Scene_lat", "Scene_lon"]):
+    def melt_to_xarray(self, df, include_cols=["Radiance", "Scene_lat", "Scene_lon"]):
         """
         Convert Dataframe of L1b radiances to xarray with coordinates:
         ["dt", "Detector", "Channel"].
@@ -117,10 +115,9 @@ class L1BStandardInTrack:
             logger.warning("LTST not in data columns, try adding first.")
         pipe = L1BDataPipeline()
         df_melted = pipe.melt_channel_detector_radiance(df.reset_index())
-        ds = df_melted.set_index(["dt", "Detector", "Channel"])[include_cols].to_xarray()
-        # Add time-dimension only columns
-        #df = df.set_index("dt")
-        #ds = ds.assign(Scene_lat = df["Scene_lat"].to_xarray(), Scene_lon=df["Scene_lon"])
+        ds = df_melted.set_index(["dt", "Detector", "Channel"])[
+            include_cols
+        ].to_xarray()
         return ds
 
 
