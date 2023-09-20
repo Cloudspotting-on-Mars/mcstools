@@ -1,0 +1,28 @@
+name: Run tests on PR when ready for review
+on:
+  pull-request:
+    types:
+    - ready_for_review
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+      # Sets up python
+      - name: Setup
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+          
+      # Install dependencies
+      - name: "Installs dependencies"
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install -e .[dev]
+
+    - name: test
+      run: make test
