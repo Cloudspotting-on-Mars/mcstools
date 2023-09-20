@@ -3,6 +3,9 @@ on:
   pull-request:
     types:
     - ready_for_review
+
+  workflow_dispatch:
+  
 jobs:
   build:
     runs-on: ubuntu-latest
