@@ -114,6 +114,11 @@ class L2Loader:
             profiles=profiles,
         )
 
+    def load_ddr2_profiles_from_ddr1_df(self, ddr1_df):
+        # ddr2s = []
+    #...: for name, group in target.groupby(["filename"]):
+    #...:     ddr2s.append(l.load_from_filebase_profiles(name, group["Prof#"].to_list(), "DDR2"))
+
     def load_date_range(
         self, start_time, end_time, ddr="DDR1", add_cols: list = None
     ):  # , profiles=[]):
