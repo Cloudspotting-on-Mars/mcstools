@@ -104,20 +104,25 @@ class L2Loader:
                 ]
                 df = dd.from_delayed(dfs)
         if profiles:
-            df = df[df["Prof#"].isin(profiles)]
+            print(profiles)
+            df = df[df["Profile_identifier"].isin(profiles)]
         return df
 
-    def load_from_filebase_profiles(self, filebase, profiles, ddr):
-        return self.load(
-            self.filename_builder.make_filename_from_filestr(filebase),
-            ddr,
-            profiles=profiles,
-        )
-
-    def load_ddr2_profiles_from_ddr1_df(self, ddr1_df):
-        # ddr2s = []
-    #...: for name, group in target.groupby(["filename"]):
-    #...:     ddr2s.append(l.load_from_filebase_profiles(name, group["Prof#"].to_list(), "DDR2"))
+    def load_profiles(self, profiles, ddr):
+        # TODO: Add DDR1 info
+        if type(profiles) == pd.Series:
+            profiles = profiles.to_list()
+        prof_split = [x.split("_") for x in profiles]
+        files = set([x[0] for x in prof_split])
+        file_prof_map = {f: [x[1] for x in prof_split if f in x] for f in files}
+        data_chunks = [
+            self.load(
+                self.filename_builder.make_filename_from_filestr(f),
+                ddr,
+                profiles=profiles
+            ) for f in files
+        ]
+        return pd.concat(data_chunks, ignore_index=True)
 
     def load_date_range(
         self, start_time, end_time, ddr="DDR1", add_cols: list = None
