@@ -1,4 +1,5 @@
 import datetime as dt
+from typing import Union
 
 import dask.dataframe as dd
 import pandas as pd
@@ -7,6 +8,7 @@ from dask import delayed
 import mcstools.util.mars_time as mt
 from mcstools.data_path_handler import FilenameBuilder
 from mcstools.reader import L1BReader, L2Reader
+from mcstools.util.time import check_and_convert_start_end_times
 
 
 class L1BLoader:
@@ -43,15 +45,7 @@ class L1BLoader:
         return df
 
     def load_date_range(self, start_time, end_time, add_cols=["dt"]):
-        times = [start_time, end_time]
-        for i, t in enumerate(times):
-            if type(t) not in [dt.datetime, str]:
-                raise TypeError(
-                    f"Unrecognized type ({type(t)}) for start/end time, "
-                    "must be datetime or isoformat str"
-                )
-            elif type(t) != dt.datetime:
-                times[i] = dt.datetime.fromisoformat(t)
+        times = check_and_convert_start_end_times(start_time, end_time)
         print(f"Loading L1B data from {times[0]} - {times[1]}")
         files = self.filename_builder.make_filenames_from_daterange(*times)
         data = self.load(files, add_cols=add_cols)
@@ -77,46 +71,81 @@ class L2Loader:
     Requires path handler to generate filenames in different.
     """
 
-    def __init__(self, pds=False, mcs_data_path=None):
+    def __init__(self, pds: bool = False, mcs_data_path: str = None) -> None:
         self.filename_builder = FilenameBuilder(
             "L2", pds=pds, mcs_data_path=mcs_data_path
-        )
-        self.reader = L2Reader(pds=pds)
+        )  # fore creating paths/urls
+        self.reader = L2Reader(pds=pds)  # file reader
 
-    def load(self, files, ddr, add_cols: list = None, profiles=None, dask=False):
+    def load(
+        self,
+        ddr: str,
+        files: Union[str, list] = None,
+        profiles: Union[list, pd.Series] = None,
+        add_cols: list = None,
+        dask: bool = False,
+    ) -> pd.DataFrame:
+        """
+        Load data record (DDR) of L2 files
+
+        files: path/url to file(s)
+        profiles: specific profiles to reduce to
+        ddr: data record [DDR1, DDR2, DDR3]
+        add_cols: additional columns to generate and add ["dt"]
+        dask: option to load via dask delay
+        """
+        # Setup files to load if only profiles given
+        if files is None:
+            if type(profiles) == pd.Series:
+                profiles = sorted(profiles.to_list())
+            # Get files from profile names
+            filestrs = sorted(
+                list(set([x[0] for x in [x.split("_") for x in profiles]]))
+            )
+            files = [
+                self.filename_builder.make_filename_from_filestr(f) for f in filestrs
+            ]
+        # Only one file, just read
         if type(files) != list:
             df = self.reader.read(files, ddr, add_cols)
+            # Specific profiles, reduce data set
+            if profiles:
+                df = df[df["Profile_identifier"].isin(profiles)]
+        # No files, make empty DF
         elif len(files) == 0:
-            df = pd.DataFrame(columns=self.reader.columns)
+            df = pd.DataFrame(columns=self.reader.columns + add_cols)
+        # Load multiple files
         else:
-            if not dask:
-                pieces = []
-                for f in sorted(files):
-                    try:
-                        fdf = self.reader.read(f, ddr, add_cols)
-                    except LookupError:
-                        continue
-                    pieces.append(fdf)
-                df = pd.concat(pieces)
-            else:
-                dfs = [
-                    delayed(self.reader.read)(f, ddr, add_cols) for f in sorted(files)
-                ]
-                df = dd.from_delayed(dfs)
-        if profiles:
-            df = df[df["Prof#"].isin(profiles)]
+            df = self._load_by_file(
+                files, ddr, profiles=profiles, add_cols=add_cols, dask=dask
+            )
         return df
 
-    def load_from_filebase_profiles(self, filebase, profiles, ddr):
-        return self.load(
-            self.filename_builder.make_filename_from_filestr(filebase),
-            ddr,
-            profiles=profiles,
-        )
+    def _load_by_file(self, files, ddr, profiles=None, add_cols=None, dask=False):
+        """
+        Read and concatenate L2 files
+        """
+        if not dask:
+            # Read in fiels one by one
+            pieces = []  # initialize list of DFs
+            for f in sorted(files):
+                try:
+                    fdf = self.reader.read(f, ddr, add_cols)
+                except LookupError:
+                    continue
+                if profiles:
+                    fdf = fdf[
+                        fdf["Profile_identifier"].isin(profiles)
+                    ]  # Reduce to subset
+                pieces.append(fdf)
+            df = pd.concat(pieces, ignore_index=True)  # combine
+        else:
+            dfs = [delayed(self.reader.read)(f, ddr, add_cols) for f in sorted(files)]
+            df = dd.from_delayed(dfs)
+        return df
 
-    def load_date_range(
-        self, start_time, end_time, ddr="DDR1", add_cols: list = None
-    ):  # , profiles=[]):
+    def load_date_range(self, start_time, end_time, ddr="DDR1", add_cols: list = None):
+        times = check_and_convert_start_end_times(start_time, end_time)
         if ddr == "DDR1":
             if not add_cols:
                 required_cols = ["dt"]
@@ -130,13 +159,13 @@ class L2Loader:
         else:
             required_cols = add_cols
             remove_cols = []
-        print(f"Loading L2 {ddr} data from {start_time} - {end_time}")
-        files = self.filename_builder.make_filenames_from_daterange(
-            start_time, end_time
-        )
-        data = self.load(files, ddr, add_cols=required_cols)  # , profiles=profiles)
+        print(f"Loading L2 {ddr} data from {times[0]} - {times[1]}")
+        files = self.filename_builder.make_filenames_from_daterange(*times)
+        data = self.load(
+            ddr, files=files, add_cols=required_cols
+        )  # , profiles=profiles)
         if ddr == "DDR1":
-            data = data[(data["dt"] >= start_time) & (data["dt"] < end_time)]
+            data = data[(data["dt"] >= times[0]) & (data["dt"] < times[1])]
         data = data.drop(columns=remove_cols)
         return data
 
@@ -165,7 +194,6 @@ class L2Loader:
             f"Determining approximate start/end dates for MY{my}, "
             f"Ls range: {start_ls} - {end_ls}"
         )
-        # Error on too wide, then reduce
         date_start = mt.MY_Ls_to_UTC(my, start_ls) - dt.timedelta(days=2)
         date_end = mt.MY_Ls_to_UTC(my, end_ls) + dt.timedelta(days=2)
         data = self.load_date_range(
@@ -175,3 +203,12 @@ class L2Loader:
         if ddr == "DDR1":
             data = data[(data["L_s"] >= start_ls) & (data["L_s"] < end_ls)]
         return data
+
+    def merge_ddrs(self, ddr2_df, ddr1_df):
+        return pd.merge(
+            ddr2_df,
+            ddr1_df,
+            on="Profile_identifier",
+            how="outer",
+            suffixes=("", "_DDR1"),
+        )

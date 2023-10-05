@@ -50,6 +50,19 @@ def convert_date_utcs(date: str, utc: str):
     return pd.to_datetime(date_str, format=fmt, errors="coerce")
 
 
+def check_and_convert_start_end_times(start_time, end_time):
+    times = [start_time, end_time]
+    for i, t in enumerate(times):
+        if type(t) not in [dt.datetime, str]:
+            raise TypeError(
+                f"Unrecognized type ({type(t)}) for start/end time, "
+                "must be datetime or isoformat str"
+            )
+        elif type(t) != dt.datetime:
+            times[i] = dt.datetime.fromisoformat(t)
+    return times
+
+
 def add_datetime_column(df: pd.DataFrame, dt_name: str = "dt") -> pd.DataFrame:
     """
     Convert Date and UTC columns to single datetime column.

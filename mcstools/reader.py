@@ -319,8 +319,7 @@ class L2Reader(Reader):
         """
         DDRprofn = self.data_records[record]["lines"]
         profnum = df.index / DDRprofn
-        df["Prof#"] = profnum.astype(int)
-        df["filename"] = self.filename
+        df["Profile_identifier"] = [f"{self.filename}_{x}" for x in profnum.astype(int)]
         if record == "DDR2":
             df["level"] = df.index % DDRprofn
         return df
