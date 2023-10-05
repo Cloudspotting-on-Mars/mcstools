@@ -28,6 +28,15 @@ loader = L1BLoader(pds=True)
 loader.load_date_range("2016-01-01", "2016-01-02")
 ```
 
+#### Find and load subset of L2 profiles
+```python
+from mcstools import L2Loader
+loader = L2Loader(pds=True)
+ddr1_df = loader.load_date_range("2018-04-18", "2018-04-19", "DDR1")
+ddr1_subset = ddr1[ddr1["Profile_lat"].between(-10, 10)]
+ddr2 = loader.load("DDR2", profiles=ddr1_subset["Profile_identifier"])
+```
+
 #### Plot L1B radiances
 To view the radiances for a single 4-hour L1B file, run
 ```bash

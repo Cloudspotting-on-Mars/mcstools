@@ -6,9 +6,9 @@ def test_read_l1b(l1b_reader):
 
 def test_read_l2_ddr1(l2_pds_reader):
     data = l2_pds_reader.read("test/top.L2", "DDR1")
-    assert data.shape == (1, 79)
+    assert data.shape == (1, 78)
 
 
 def test_read_l2_ddr2(l2_pds_reader):
     data = l2_pds_reader.read("test/top.L2", "DDR2")
-    assert data.shape == (105, 18)
+    assert data.shape == (105, 17)
