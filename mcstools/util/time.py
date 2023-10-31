@@ -53,12 +53,12 @@ def convert_date_utcs(date: str, utc: str):
 def check_and_convert_start_end_times(start_time, end_time):
     times = [start_time, end_time]
     for i, t in enumerate(times):
-        if type(t) not in [dt.datetime, str]:
+        if type(t) not in [dt.datetime, pd._libs.tslibs.timestamps.Timestamp, str]:
             raise TypeError(
                 f"Unrecognized type ({type(t)}) for start/end time, "
                 "must be datetime or isoformat str"
             )
-        elif type(t) != dt.datetime:
+        elif type(t) == str:
             times[i] = dt.datetime.fromisoformat(t)
     return times
 
