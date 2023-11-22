@@ -13,8 +13,7 @@ from mcstools.util.geom import (
     spherical_coords_mcenter,
     spherical_to_cartesian,
 )
-from mcstools.util.mars_time import ltst
-from mcstools.util.time import convert_date_utcs
+from mcstools.util.time import convert_date_utcs, ltst
 
 
 class DataPipeline:

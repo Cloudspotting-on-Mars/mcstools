@@ -4,8 +4,8 @@ from typing import Union
 import dask.dataframe as dd
 import pandas as pd
 from dask import delayed
+from mars_time import MarsTime, marstime_to_datetime
 
-import mcstools.util.mars_time as mt
 from mcstools.data_path_handler import FilenameBuilder
 from mcstools.reader import L1BReader, L2Reader
 from mcstools.util.time import check_and_convert_start_end_times
@@ -171,9 +171,8 @@ class L2Loader:
 
     def load_ls_range(
         self,
-        my: int,
-        start_ls: float,
-        end_ls: float,
+        start: MarsTime,
+        end: MarsTime,
         ddr="DDR1",
         add_cols: list = None,
         **kwargs,
@@ -183,25 +182,24 @@ class L2Loader:
 
         Parameters
         ----------
-        my: Mars Year
-        start_ls/end_ls: beginning/end of Ls range
+        start/end: beginning/end of MY/Ls range
 
         Returns
         -------
         _: loaded L2 data
         """
-        print(
-            f"Determining approximate start/end dates for MY{my}, "
-            f"Ls range: {start_ls} - {end_ls}"
-        )
-        date_start = mt.MY_Ls_to_UTC(my, start_ls) - dt.timedelta(days=2)
-        date_end = mt.MY_Ls_to_UTC(my, end_ls) + dt.timedelta(days=2)
+        print(f"Determining approximate start/end dates for " f"range: {start} - {end}")
+        date_start = marstime_to_datetime(start) - dt.timedelta(days=2)
+        date_end = marstime_to_datetime(end) + dt.timedelta(days=2)
         data = self.load_date_range(
             date_start, date_end, ddr, add_cols=add_cols, **kwargs
         )
         # This reduction will need to be more complicated for multi-MY searches
         if ddr == "DDR1":
-            data = data[(data["L_s"] >= start_ls) & (data["L_s"] < end_ls)]
+            data = data[
+                (data["L_s"] >= start.solar_longitude)
+                & (data["L_s"] < end.solar_longitude)
+            ]
         return data
 
     def merge_ddrs(self, ddr2_df, ddr1_df):

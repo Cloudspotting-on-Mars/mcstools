@@ -2,8 +2,8 @@ import datetime as dt
 import os
 
 import pandas as pd
+from mars_time import MarsTime, marstime_to_datetime
 
-from mcstools.util.mars_time import MarsDate
 from mcstools.util.time import GDS_DATE_FMT, round_to_x_hour
 
 # TODO: check_file_exists shouldn't be part of path handler, should be part of loader
@@ -36,12 +36,12 @@ class FilenameBuilder:
         filenames = [self.handler.build_filename_from_filestr(f) for f in filestrs]
         return filenames
 
-    def make_filenames_from_marsdaterange(self, start: MarsDate, end: MarsDate):
+    def make_filenames_from_marsdaterange(self, start: MarsTime, end: MarsTime):
         """
         Build paths given a start/end MY-Ls range and check if each file exist.
         """
-        start_dt = start.to_UTC()
-        end_dt = end.to_UTC()
+        start_dt = marstime_to_datetime(start)
+        end_dt = marstime_to_datetime(end)
         return self.make_filenames_from_daterange(start_dt, end_dt)
 
     def _build_filestrs_from_daterange(
