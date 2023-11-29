@@ -3,6 +3,7 @@ import os
 
 import pandas as pd
 from mars_time import MarsTime, marstime_to_datetime
+from dotenv import load_dotenv
 
 from mcstools.util.time import GDS_DATE_FMT, round_to_x_hour
 
@@ -148,18 +149,44 @@ class PDSFileFormatter(FileFormatterBase):
 
 class DirectoryFileFormatter(FileFormatterBase):
 
-    level_dir_map = {
-        "L1B": "level_1b",
-        "L2": "level_2_2d",
-        "L1A": "level_1a",
-        "unpacked": "unpacked",
-    }
     level_suffix_map = {"L1B": "L1B", "L2": "L2", "L1A": "L1A", "unpacked": "tab"}
 
-    def __init__(self, level: str, mcs_data_path: str):
+    def __init__(self, level: str, mcs_data_path: str = None):
+        load_dotenv()
         self.level = level
-        self.mcs_directory = mcs_data_path
-        self.level_directory = self.build_level_directory(self.level_dir_map[level])
+        if not mcs_data_path:
+            self.mcs_data_path = os.getenv("MCS_DATA_DIR_BASE")
+            if not mcs_data_path:
+                raise ValueError(
+                    "Base directory for MCS data not provided as "
+                    "argument or environment varibale"
+                )
+        else:
+            self.mcs_directory = mcs_data_path
+        self.setup_subdir_paths()
+
+        self.level_directory = self.build_level_directory(self.level_subdir_map[level])
+
+    def setup_subdir_paths(self):
+        # Initialize default
+        level_subdir_map_deafult = {
+            "L1B": "level_1b",
+            "L2": "level_2_2d",
+            "L1A": "level_1a",
+            "unpacked": "unpacked",
+        }
+        # Update with environment variables
+        self.level_subdir_map = {
+            "L1B": os.getenv("MCS_LEVEL_1B_SUBDIR"),
+            "L2": os.getenv("MCS_LEVEL_2_SUBDIR"),
+            "L1A": os.getenv("MCS_LEVEL_1A_SUBDIR"),
+            "unpacked": os.getenv("MCS_UNPACKED_SUBDIR"),
+        }
+        # Fix any missing
+        for key, val in self.level_subdir_map.items():
+            if not val:
+                self.level_subdir_map[key] = level_subdir_map_deafult[key]
+        return self.level_subdir_map
 
     def build_level_directory(self, level_directory):
         """
