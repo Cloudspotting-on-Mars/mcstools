@@ -82,3 +82,13 @@ def add_datetime_column(df: pd.DataFrame, dt_name: str = "dt") -> pd.DataFrame:
         lambda row: convert_date_utcs(row["Date"], row["UTC"]), axis=1
     )
     return df
+
+
+def ltst(lon, subsolar_lon):
+    # [0, 24)
+    delta = lon - subsolar_lon
+    if delta < -180:
+        delta += 360
+    if delta >= 180:
+        delta -= 360
+    return (delta + 180) * 24 / 360
