@@ -2,8 +2,8 @@ import datetime as dt
 import os
 
 import pandas as pd
-from mars_time import MarsTime, marstime_to_datetime
 from dotenv import load_dotenv
+from mars_time import MarsTime, marstime_to_datetime
 
 from mcstools.util.time import GDS_DATE_FMT, round_to_x_hour
 
