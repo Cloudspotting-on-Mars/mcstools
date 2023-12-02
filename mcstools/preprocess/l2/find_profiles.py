@@ -1,4 +1,5 @@
 import click
+import os
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -81,17 +82,17 @@ def bin_ddr1_profiles(ddr1_df: pd.DataFrame, bin_config: dict) -> pd.DataFrame:
     return ddr1_df
 
 def convert_binned_df_to_xarray(binned_df: pd.DataFrame) -> xr.DataArray:
-    binned_grouped = binned.groupby(
+    binned_grouped = binned_df.groupby(
         [f"{x}_mid" for x in bin_config.keys()],
         as_index=True
     )["Profile_identifier"].agg(list)
-    print(binned_grouped)
     binned_xr = binned_grouped.to_xarray()
-    print(binned_xr)
+    return binned_xr
 
 @click.command()
 @click.option("--data-dir", default=None, type=str, help="Path to mcs data directory (defaults to using PDS)")
-def main(data_dir):#, start_date, end_date, filters):
+@click.option("--output-path", default=None, type=str, help="Path to save output file")
+def main(data_dir, output_path):
     if data_dir:
         l2loader = L2Loader(mcs_data_path = data_dir)
     else:
@@ -103,7 +104,8 @@ def main(data_dir):#, start_date, end_date, filters):
     print(reduced_ddr1)
     binned = bin_ddr1_profiles(reduced_ddr1, bin_config)
     print(binned[list(bin_config.keys())+[f"{x}_mid" for x in bin_config.keys()]])
-    
+    if output_path:
+        binned[[f"{x}_mid" for x in bin_config.keys()] + ["Profile_identifier"]].to_csv(output_path, index=False)
 
 if __name__=="__main__":
     main()
