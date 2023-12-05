@@ -35,7 +35,10 @@ class L1BLoader:
                 for f in sorted(files):
                     try:
                         fdf = self.reader.read(f, add_cols=add_cols)
-                    except LookupError:
+                    except LookupError as error:
+                        print(error)
+                    except FileNotFoundError as error:
+                        print(error+"\nIgnoring.")
                         continue
                     pieces.append(fdf)
                 df = pd.concat(pieces)
