@@ -43,15 +43,15 @@ class L1BLoader:
                     pieces.append(fdf)
                 df = pd.concat(pieces)
             else:
-                dfs = [delayed(self.reader.read)(f) for f in sorted(files)]
+                dfs = [delayed(self.reader.read)(f, None, add_cols) for f in sorted(files)]
                 df = dd.from_delayed(dfs)
         return df
 
-    def load_date_range(self, start_time, end_time, add_cols=["dt"]):
+    def load_date_range(self, start_time, end_time, add_cols=["dt"], **kwargs):
         times = check_and_convert_start_end_times(start_time, end_time)
         print(f"Loading L1B data from {times[0]} - {times[1]}")
         files = self.filename_builder.make_filenames_from_daterange(*times)
-        data = self.load(files, add_cols=add_cols)
+        data = self.load(files, add_cols=add_cols, **kwargs)
         data = data[(data["dt"] >= start_time) & (data["dt"] < end_time)]
         return data
 
