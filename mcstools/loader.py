@@ -38,7 +38,7 @@ class L1BLoader:
                     except LookupError as error:
                         print(error)
                     except FileNotFoundError as error:
-                        print(error+"\nIgnoring.")
+                        print(error, "\nIgnoring.")
                         continue
                     pieces.append(fdf)
                 df = pd.concat(pieces)
