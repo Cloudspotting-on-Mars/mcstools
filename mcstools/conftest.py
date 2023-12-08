@@ -1,9 +1,16 @@
+import os
+
 import numpy as np
 import pytest
 
 from mcstools.data_path_handler import FilenameBuilder
 from mcstools.mcsfile import L1BFile, L2File
 from mcstools.reader import L1BReader, L2Reader
+
+# Set any environment variables
+os.environ["MCS_DATA_DIR_BASE"] = "testdir"
+os.environ["MCS_LEVEL_1B_SUBDIR"] = "level_1b"
+os.environ["MCS_LEVEL_2_SUBDIR"] = "level_2_2d"
 
 
 @pytest.fixture()
