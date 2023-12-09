@@ -47,7 +47,7 @@ def convert_date_utcs(date: str, utc: str):
         date_str = pd.NaT
     else:
         date_str = date.strip().replace('"', "") + " " + utc.strip().replace('"', "")
-    return pd.to_datetime(date_str, format=fmt, errors="coerce")
+    return pd.to_datetime(date_str, format=fmt, errors="coerce", utc=True)
 
 
 def check_and_convert_start_end_times(start_time, end_time):
