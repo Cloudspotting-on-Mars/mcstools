@@ -1,10 +1,12 @@
 import click
+import datetime as dt
 import numpy as np
 import pandas as pd
 import xarray as xr
 from mars_time import MarsTime, datetime_to_marstime, marstime_to_datetime
 
 from mcstools.loader import L2Loader
+from mcstools.util.io import load_yaml
 
 """
 Search DDR1 records over some time range and
@@ -149,6 +151,28 @@ def convert_binned_df_to_xarray(binned_df: pd.DataFrame) -> xr.DataArray:
     binned_xr = binned_grouped.to_xarray()
     return binned_xr
 
+class ConfigParser():
+    def __init__(self) -> None:
+        pass
+
+    def parse_yaml(self, yaml_dict: dict):
+        for config_type, config_data in yaml_dict.items():
+            for key, val in config_data.items():
+                if type(val) is dict:
+                    yaml_dict[config_type][key] = (val["Start"], val["Stop"], val["Step"])
+            if "dt" in config_data.keys():
+                if type(config_data["dt"]) is str:
+                    yaml_dict[config_type]["dt"] = dt.datetime.fromisoformat(config_data["dt"])
+                elif type(config_data["dt"]) in [tuple, list]:
+                    yaml_dict[config_type]["dt"] = (
+                        dt.datetime.fromisoformat(config_data["dt"][x]) for x in config_data["dt"]
+                    )
+        return yaml_dict
+
+    def load_config(self, path):
+        config = load_yaml(path)
+        config = self.parse_yaml(config)
+        return config
 
 @click.command()
 @click.option(
