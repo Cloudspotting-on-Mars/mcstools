@@ -111,6 +111,9 @@ def filter_ddr1_df_from_config(
         if type(vals) in [list]:
             print(f"Selecting rows with {field} in {vals}.")
             ddr1_df = ddr1_df[ddr1_df[field].isin(vals)]
+        if ddr1_df.empty:
+            print("No profiles left after filtering")
+            break
     return ddr1_df
 
 
