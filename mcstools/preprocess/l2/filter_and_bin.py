@@ -159,13 +159,24 @@ class ConfigParser():
         for config_type, config_data in yaml_dict.items():
             for key, val in config_data.items():
                 if type(val) is dict:
-                    yaml_dict[config_type][key] = (val["Start"], val["Stop"], val["Step"])
+                    if "Step" in val.keys():
+                        yaml_dict[config_type][key] = (val["Start"], val["Stop"], val["Step"])
+                    else:
+                        yaml_dict[config_type][key] = (val["Start"], val["Stop"])
             if "dt" in config_data.keys():
                 if type(config_data["dt"]) is str:
                     yaml_dict[config_type]["dt"] = dt.datetime.fromisoformat(config_data["dt"])
                 elif type(config_data["dt"]) in [tuple, list]:
                     yaml_dict[config_type]["dt"] = (
                         dt.datetime.fromisoformat(config_data["dt"][x]) for x in config_data["dt"]
+                    )
+            if "MY" and "L_s" in config_data.keys():
+                if type(config_data["L_s"]) in [tuple, list]:
+                    print(config_data["L_s"])
+                    yaml_dict[config_type]["Marstime"] = tuple(
+                        MarsTime.from_solar_longitude(
+                            config_data["MY"], x
+                        ) for x in config_data["L_s"]
                     )
         return yaml_dict
 

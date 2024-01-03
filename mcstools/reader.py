@@ -7,7 +7,7 @@ import requests
 
 from mcstools.mcsfile import L1BFile, L2File
 from mcstools.util.log import logger
-from mcstools.util.time import GDS_DATE_FMT, PDS_DATE_FMT, add_datetime_column
+from mcstools.util.time import GDS_DATE_FMT, PDS_DATE_FMT, add_datetime_column, add_marsyear_column
 
 
 class Reader:
@@ -67,6 +67,8 @@ class L1BReader(Reader, L1BFile):
         if add_cols:
             if "dt" in add_cols:
                 df = add_datetime_column(df)
+            if "MY" in add_cols:
+                df = add_marsyear_column(df)
         return df
 
     def grab_header_values(self, filename: str, url=False) -> dict:
@@ -342,4 +344,6 @@ class L2Reader(Reader):
         if add_cols:
             if "dt" in add_cols:
                 df = add_datetime_column(df)
+            if "MY" in add_cols:
+                df = add_marsyear_column(df)
         return df

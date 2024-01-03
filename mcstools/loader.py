@@ -97,6 +97,7 @@ class L2Loader:
         add_cols: additional columns to generate and add ["dt"]
         dask: option to load via dask delay
         """
+        print(add_cols)
         # Setup files to load if only profiles given
         if files is None:
             if type(profiles) == pd.Series:
@@ -150,11 +151,11 @@ class L2Loader:
     def load_date_range(self, start_time, end_time, ddr="DDR1", add_cols: list = None):
         times = check_and_convert_start_end_times(start_time, end_time)
         if ddr == "DDR1":
-            if not add_cols:
+            if add_cols is None:
                 required_cols = ["dt"]
                 remove_cols = ["dt"]
             elif "dt" not in add_cols:
-                required_cols = ["dt"]
+                required_cols = add_cols + ["dt"]
                 remove_cols = ["dt"]
             else:
                 required_cols = add_cols
@@ -192,6 +193,7 @@ class L2Loader:
         _: loaded L2 data
         """
         print(f"Determining approximate start/end dates for " f"range: {start} - {end}")
+        # Overshoot on both sides, then fix after data is loaded
         date_start = marstime_to_datetime(start) - dt.timedelta(days=2)
         date_end = marstime_to_datetime(end) + dt.timedelta(days=2)
         data = self.load_date_range(
