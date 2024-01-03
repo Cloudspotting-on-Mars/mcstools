@@ -79,9 +79,8 @@ class L2Loader:
             "L2", pds=pds, mcs_data_path=mcs_data_path
         )  # fore creating paths/urls
         print(
-            f"Setup to load L2 files from {
-                self.filename_builder.handler.level_directory
-            }"
+            "Setup to load L2 files "
+            f"from {self.filename_builder.handler.level_directory}"
         )
         self.reader = L2Reader(pds=pds)  # file reader
 
