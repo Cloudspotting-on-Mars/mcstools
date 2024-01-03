@@ -13,14 +13,9 @@ from mcstools.util.time import GDS_DATE_FMT, round_to_x_hour
 
 class FilenameBuilder:
     def __init__(self, level: str, pds=False, mcs_data_path=None) -> None:
-        if (not pds and mcs_data_path is None) or (pds and mcs_data_path is not None):
-            print(pds, mcs_data_path)
-            raise ValueError(
-                "Must provide one and only one of 'pds' or 'mcs_data_path'"
-            )
-        elif pds:
+        if pds:
             self.handler = PDSFileFormatter(level)
-        elif mcs_data_path:
+        else:
             self.handler = DirectoryFileFormatter(level, mcs_data_path)
 
     def make_filename_from_filestr(self, filestr) -> str:
@@ -155,8 +150,8 @@ class DirectoryFileFormatter(FileFormatterBase):
         load_dotenv()
         self.level = level
         if not mcs_data_path:
-            self.mcs_data_path = os.getenv("MCS_DATA_DIR_BASE")
-            if not mcs_data_path:
+            self.mcs_directory = os.getenv("MCS_DATA_DIR_BASE")
+            if not self.mcs_directory:
                 raise ValueError(
                     "Base directory for MCS data not provided as "
                     "argument or environment varibale"

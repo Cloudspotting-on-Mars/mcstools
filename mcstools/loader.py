@@ -78,10 +78,13 @@ class L2Loader:
         self.filename_builder = FilenameBuilder(
             "L2", pds=pds, mcs_data_path=mcs_data_path
         )  # fore creating paths/urls
-        print(
-            "Setup to load L2 files "
-            f"from {self.filename_builder.handler.level_directory}"
-        )
+        if not pds:
+            print(
+                "Setup to load L2 files "
+                f"from {self.filename_builder.handler.level_directory}"
+            )
+        else:
+            print("Setup to load L2 files from PDS")
         self.reader = L2Reader(pds=pds)  # file reader
 
     def load(
