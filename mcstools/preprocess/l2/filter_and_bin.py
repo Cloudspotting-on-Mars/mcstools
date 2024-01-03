@@ -172,7 +172,6 @@ class ConfigParser():
                     )
             if "MY" and "L_s" in config_data.keys():
                 if type(config_data["L_s"]) in [tuple, list]:
-                    print(config_data["L_s"])
                     yaml_dict[config_type]["Marstime"] = tuple(
                         MarsTime.from_solar_longitude(
                             config_data["MY"], x

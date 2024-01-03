@@ -104,7 +104,6 @@ class L2Loader:
         add_cols: additional columns to generate and add ["dt"]
         dask: option to load via dask delay
         """
-        print(add_cols)
         # Setup files to load if only profiles given
         if files is None:
             if type(profiles) == pd.Series:
