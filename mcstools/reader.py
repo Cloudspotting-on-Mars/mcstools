@@ -134,9 +134,16 @@ class L2Reader(Reader):
         self.filename = dt.datetime.strptime(pds_datestr, PDS_DATE_FMT).strftime(
             GDS_DATE_FMT
         )
-        url_text = requests.get(url).text
-        lines = url_text.splitlines()
-        self.file_length = len(lines)
+        url_req = requests.get(url)
+        if url_req.status_code == 200:
+            url_text = url_req.text
+            lines = url_text.splitlines()
+            self.file_length = len(lines)
+        elif url_req.status_code==404:
+            lines = []
+            self.file_length=0
+        else:
+            print(f"Not setup to handle request status code {url_req} from {url}")
         return lines
 
     def get_comments_from_lines(self, lines):
