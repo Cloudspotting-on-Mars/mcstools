@@ -161,7 +161,9 @@ class L2Reader(Reader):
         for i, ddr in enumerate(self.data_records.keys()):
             ddr_line = lines[len(self.comments) + i]
             file_columns[ddr] = [x.strip() for x in ddr_line.rstrip().split(",")]
-            self.check_column_names(file_columns[ddr], ddr)
+            check_result = self.check_column_names(file_columns[ddr], ddr)
+            if not check_result:
+                print(f"Problem loading {self.path}")
         return file_columns
 
     def check_column_names(self, column_names, DDRN):
@@ -184,6 +186,9 @@ class L2Reader(Reader):
             print(f"Filename: {self.filename}")
             print(f"Expected {exp_cols} names for DDR{DDRN} row,")
             print(f"Got: {column_names}")
+            return False
+        else:
+            return True
 
     def get_data_record(self, lines, record):
         """
