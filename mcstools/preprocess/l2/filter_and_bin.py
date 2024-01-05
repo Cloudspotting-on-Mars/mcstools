@@ -13,8 +13,6 @@ Search DDR1 records over some time range and
 find profiles within various bounds.
 """
 
-# TODO: Convert main to find_ddr1_profiles_in_bin, then can use L2Loader elsewhere 
-
 filter_config_example = {
     "dt": ("2007-01-01", "2007-01-01 08:00:00"),
     "Profile_lat": (-20, 20),
@@ -147,7 +145,7 @@ def bin_ddr1_profiles(ddr1_df: pd.DataFrame, bin_config: dict) -> pd.DataFrame:
     return ddr1_df
 
 
-def convert_binned_df_to_xarray(binned_df: pd.DataFrame) -> xr.DataArray:
+def convert_binned_df_to_xarray(binned_df: pd.DataFrame, bin_config: dict) -> xr.DataArray:
     binned_grouped = binned_df.groupby(
         [f"{x}_mid" for x in bin_config.keys()], as_index=True
     )["Profile_identifier"].agg(list)
@@ -186,32 +184,3 @@ class ConfigParser():
         config = load_yaml(path)
         config = self.parse_yaml(config)
         return config
-
-@click.command()
-@click.option(
-    "--data-dir",
-    default=None,
-    type=str,
-    help="Path to mcs data directory (defaults to using PDS)",
-)
-@click.option("--output-path", default=None, type=str, help="Path to save output file")
-def main(data_dir, output_path):
-    if data_dir:
-        l2loader = L2Loader(mcs_data_path=data_dir)
-    else:
-        l2loader = L2Loader(pds=True)
-    if "dt" in config.keys() and "Ls" not in config.keys():
-        ddr1 = l2loader.load_date_range(*config["dt"], ddr="DDR1", add_cols=["dt"])
-        print(ddr1)
-    reduced_ddr1 = filter_ddr1_df_from_config(ddr1, config)
-    print(reduced_ddr1)
-    binned = bin_ddr1_profiles(reduced_ddr1, bin_config)
-    print(binned[list(bin_config.keys()) + [f"{x}_mid" for x in bin_config.keys()]])
-    if output_path:
-        binned[[f"{x}_mid" for x in bin_config.keys()] + ["Profile_identifier"]].to_csv(
-            output_path, index=False
-        )
-
-
-if __name__ == "__main__":
-    main()
