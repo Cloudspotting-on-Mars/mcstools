@@ -129,6 +129,7 @@ class L2Reader(Reader):
         return lines
 
     def read_lines_from_url(self, url):
+        self.path = url
         pds_datestr = os.path.splitext(os.path.basename(url))[0].split("_")[0]
         self.filename = dt.datetime.strptime(pds_datestr, PDS_DATE_FMT).strftime(
             GDS_DATE_FMT
