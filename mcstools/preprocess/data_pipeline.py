@@ -1,5 +1,7 @@
 import datetime as dt
 from typing import Union
+import pytz
+from pandas._libs.tslibs.parsing import guess_datetime_format
 
 import numpy as np
 import pandas as pd
@@ -426,6 +428,17 @@ class L1BDataPipeline(DataPipeline):
                 for x in df.columns
                 if x not in [channel_name, detector_name] + self.radcols
             ]
+        if "dt" in id_vars:
+            print(type(df["dt"].dt.tz))
+            ex = df["dt"].iloc[0].to_pydatetime()
+            print(ex)
+            format = guess_datetime_format(ex.isoformat())
+            print(format)
+            if df["dt"].dt.tz == pytz.UTC:
+                utc = True
+            else:
+                print("Melting non-UTC tz-aware column, may not hold up after melting.")
+                utc = False    
         # Move RAD_CH_DE column names to variable column and make new radiance column
         melted = df.melt(id_vars=id_vars, value_name=value_name)
         melted[channel_name] = melted["variable"].apply(
@@ -437,6 +450,11 @@ class L1BDataPipeline(DataPipeline):
         melted = melted.drop(
             columns="variable"
         )  # Remove columns of "Rad_[CH]_[DE]" values ("Radiance" columns remain)
+        if "dt" in id_vars:
+            print(melted["dt"])
+            #melted["dt"] = pd.to_datetime(melted, format=format)
+        print(melted)
+        print(melted["dt"].dt.tz)
         return melted
 
     def add_altitude_column(

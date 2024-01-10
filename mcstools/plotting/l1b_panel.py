@@ -29,6 +29,7 @@ def all_plots(df_ave):
     cdata = [
         df_ave.sel(Channel=c) for c in reader.channels
     ]  # get radiances for each channel
+    print(cdata[0]["dt"])
     plots = [
         plot(d).opts(
             ylim=(reader.detectors[c[0]][0], reader.detectors[c[0]][-1]),
@@ -90,9 +91,14 @@ def main(filestr) -> None:
         df = loader.load([path])  # load single 4-hour file
         processer = L1BStandardInTrack()  # initialize processer
         df = processer.preprocess(df)  # reduce to in-track sequence-averaged data
+        print(df["dt"])
+        #df["dt"] = df["dt"].apply(lambda x: x.replace(tzinfo=None))
         df_xr = processer.melt_to_xarray(
             df, include_cols=["Radiance", "Scene_lat", "Scene_lon", "LTST", "L_sub_s"]
         )  # melt radiance columns to individual detectors
+        print(df_xr["dt"])
+        import sys
+        sys.exit()
         tabs = all_plots(df_xr)  # generate all plots
         view = pn.Column(
             FILESTR, tabs

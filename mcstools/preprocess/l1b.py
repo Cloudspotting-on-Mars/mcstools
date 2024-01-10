@@ -115,6 +115,7 @@ class L1BStandardInTrack:
             logger.warning("LTST not in data columns, try adding first.")
         pipe = L1BDataPipeline()
         df_melted = pipe.melt_channel_detector_radiance(df.reset_index())
+        print(df_melted.set_index(["dt", "Detector", "Channel"]).index)
         ds = df_melted.set_index(["dt", "Detector", "Channel"])[
             include_cols
         ].to_xarray()

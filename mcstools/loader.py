@@ -123,7 +123,10 @@ class L2Loader:
                 df = df[df["Profile_identifier"].isin(profiles)]
         # No files, make empty DF
         elif len(files) == 0:
-            df = pd.DataFrame(columns=self.reader.columns + add_cols)
+            empty_df_cols = self.reader.data_records[ddr]["columns"]
+            if add_cols is not None:
+                empty_df_cols += add_cols
+            df = pd.DataFrame(columns=empty_df_cols)
         # Load multiple files
         else:
             df = self._load_by_file(
@@ -199,7 +202,7 @@ class L2Loader:
         _: loaded L2 data
         """
         print(f"Determining approximate start/end dates for " f"range: {start} - {end}")
-        # Overshoot on both sides, then fix after data is loaded
+        # Overshoot on both sides, then fix after data is loaded (remove tz-aware from MarsTime)
         date_start = marstime_to_datetime(start) - dt.timedelta(days=2)
         date_end = marstime_to_datetime(end) + dt.timedelta(days=2)
         data = self.load_date_range(

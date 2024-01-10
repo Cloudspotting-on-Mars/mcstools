@@ -30,7 +30,7 @@ def round_to_x_hour(date, hours=4, force_down=False, force_up=False):
     return dt_start_of_xhour
 
 
-def convert_date_utcs(date: str, utc: str):
+def convert_date_utcs(date: str, utc: str, with_utc_tzinfo=True):
     """
     Convert MCS "Date" and "UTC" column values into datetime
 
@@ -48,7 +48,7 @@ def convert_date_utcs(date: str, utc: str):
         date_str = pd.NaT
     else:
         date_str = date.strip().replace('"', "") + " " + utc.strip().replace('"', "")
-    return pd.to_datetime(date_str, format=fmt, errors="coerce", utc=True)
+    return pd.to_datetime(date_str, format=fmt, errors="coerce", utc=with_utc_tzinfo)
 
 
 def check_and_convert_start_end_times(start_time, end_time):
