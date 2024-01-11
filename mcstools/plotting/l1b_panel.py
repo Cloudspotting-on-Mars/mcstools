@@ -97,8 +97,6 @@ def main(filestr) -> None:
             df, include_cols=["Radiance", "Scene_lat", "Scene_lon", "LTST", "L_sub_s"]
         )  # melt radiance columns to individual detectors
         print(df_xr["dt"])
-        import sys
-        sys.exit()
         tabs = all_plots(df_xr)  # generate all plots
         view = pn.Column(
             FILESTR, tabs
