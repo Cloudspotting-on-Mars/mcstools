@@ -7,7 +7,12 @@ import requests
 
 from mcstools.mcsfile import L1BFile, L2File
 from mcstools.util.log import logger
-from mcstools.util.time import GDS_DATE_FMT, PDS_DATE_FMT, add_datetime_column
+from mcstools.util.time import (
+    GDS_DATE_FMT,
+    PDS_DATE_FMT,
+    add_datetime_column,
+    add_marsyear_column,
+)
 
 
 class Reader:
@@ -67,6 +72,8 @@ class L1BReader(Reader, L1BFile):
         if add_cols:
             if "dt" in add_cols:
                 df = add_datetime_column(df)
+            if "MY" in add_cols:
+                df = add_marsyear_column(df)
         return df
 
     def grab_header_values(self, filename: str, url=False) -> dict:
@@ -127,13 +134,21 @@ class L2Reader(Reader):
         return lines
 
     def read_lines_from_url(self, url):
+        self.path = url
         pds_datestr = os.path.splitext(os.path.basename(url))[0].split("_")[0]
         self.filename = dt.datetime.strptime(pds_datestr, PDS_DATE_FMT).strftime(
             GDS_DATE_FMT
         )
-        url_text = requests.get(url).text
-        lines = url_text.splitlines()
-        self.file_length = len(lines)
+        url_req = requests.get(url)
+        if url_req.status_code == 200:
+            url_text = url_req.text
+            lines = url_text.splitlines()
+            self.file_length = len(lines)
+        elif url_req.status_code == 404:
+            lines = []
+            self.file_length = 0
+        else:
+            print(f"Not setup to handle request status code {url_req} from {url}")
         return lines
 
     def get_comments_from_lines(self, lines):
@@ -159,7 +174,9 @@ class L2Reader(Reader):
         for i, ddr in enumerate(self.data_records.keys()):
             ddr_line = lines[len(self.comments) + i]
             file_columns[ddr] = [x.strip() for x in ddr_line.rstrip().split(",")]
-            self.check_column_names(file_columns[ddr], ddr)
+            check_result = self.check_column_names(file_columns[ddr], ddr)
+            if not check_result:
+                print(f"Problem loading {self.path}")
         return file_columns
 
     def check_column_names(self, column_names, DDRN):
@@ -182,6 +199,9 @@ class L2Reader(Reader):
             print(f"Filename: {self.filename}")
             print(f"Expected {exp_cols} names for DDR{DDRN} row,")
             print(f"Got: {column_names}")
+            return False
+        else:
+            return True
 
     def get_data_record(self, lines, record):
         """
@@ -342,4 +362,6 @@ class L2Reader(Reader):
         if add_cols:
             if "dt" in add_cols:
                 df = add_datetime_column(df)
+            if "MY" in add_cols:
+                df = add_marsyear_column(df)
         return df

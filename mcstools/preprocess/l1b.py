@@ -1,3 +1,6 @@
+import pandas as pd
+import pytz
+
 from mcstools.preprocess.data_pipeline import L1BDataPipeline
 from mcstools.util.log import logger
 
@@ -115,9 +118,19 @@ class L1BStandardInTrack:
             logger.warning("LTST not in data columns, try adding first.")
         pipe = L1BDataPipeline()
         df_melted = pipe.melt_channel_detector_radiance(df.reset_index())
+        print(df_melted.set_index(["dt", "Detector", "Channel"]).index[0])
         ds = df_melted.set_index(["dt", "Detector", "Channel"])[
             include_cols
         ].to_xarray()
+        # Xarray treats datetimes as naive/UTC
+        tz = df["dt"].iloc[0].tz
+        ds["dt"] = pd.DatetimeIndex(ds["dt"])
+        if tz != pytz.utc:
+            # Warn if input was not UTC
+            print(
+                "Moved non-UTC timezone into xarray dataset, "
+                f"not sure if tzinfo {tz} carried correctly"
+            )
         return ds
 
 

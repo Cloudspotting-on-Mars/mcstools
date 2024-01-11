@@ -43,7 +43,9 @@ class L1BLoader:
                     pieces.append(fdf)
                 df = pd.concat(pieces)
             else:
-                dfs = [delayed(self.reader.read)(f, None, add_cols) for f in sorted(files)]
+                dfs = [
+                    delayed(self.reader.read)(f, None, add_cols) for f in sorted(files)
+                ]
                 df = dd.from_delayed(dfs)
         return df
 
@@ -78,6 +80,13 @@ class L2Loader:
         self.filename_builder = FilenameBuilder(
             "L2", pds=pds, mcs_data_path=mcs_data_path
         )  # fore creating paths/urls
+        if not pds:
+            print(
+                "Setup to load L2 files "
+                f"from {self.filename_builder.handler.level_directory}"
+            )
+        else:
+            print("Setup to load L2 files from PDS")
         self.reader = L2Reader(pds=pds)  # file reader
 
     def load(
@@ -116,7 +125,10 @@ class L2Loader:
                 df = df[df["Profile_identifier"].isin(profiles)]
         # No files, make empty DF
         elif len(files) == 0:
-            df = pd.DataFrame(columns=self.reader.columns + add_cols)
+            empty_df_cols = self.reader.data_records[ddr]["columns"]
+            if add_cols is not None:
+                empty_df_cols += add_cols
+            df = pd.DataFrame(columns=empty_df_cols)
         # Load multiple files
         else:
             df = self._load_by_file(
@@ -150,11 +162,11 @@ class L2Loader:
     def load_date_range(self, start_time, end_time, ddr="DDR1", add_cols: list = None):
         times = check_and_convert_start_end_times(start_time, end_time)
         if ddr == "DDR1":
-            if not add_cols:
+            if add_cols is None:
                 required_cols = ["dt"]
                 remove_cols = ["dt"]
             elif "dt" not in add_cols:
-                required_cols = ["dt"]
+                required_cols = add_cols + ["dt"]
                 remove_cols = ["dt"]
             else:
                 required_cols = add_cols
@@ -192,6 +204,8 @@ class L2Loader:
         _: loaded L2 data
         """
         print(f"Determining approximate start/end dates for " f"range: {start} - {end}")
+        # Overshoot on both sides, then fix after data is loaded
+        # (remove tz-aware from MarsTime)
         date_start = marstime_to_datetime(start) - dt.timedelta(days=2)
         date_end = marstime_to_datetime(end) + dt.timedelta(days=2)
         data = self.load_date_range(

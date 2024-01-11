@@ -1,6 +1,7 @@
 import datetime as dt
 
 import pandas as pd
+from mars_time import datetime_to_marstime
 
 GDS_DATE_FMT = "%y%m%d%H%M%S"  # Format used in GDS filenames
 PDS_DATE_FMT = "%Y%m%d%H"  # Format used in PDS filenames
@@ -29,7 +30,7 @@ def round_to_x_hour(date, hours=4, force_down=False, force_up=False):
     return dt_start_of_xhour
 
 
-def convert_date_utcs(date: str, utc: str):
+def convert_date_utcs(date: str, utc: str, with_utc_tzinfo=True):
     """
     Convert MCS "Date" and "UTC" column values into datetime
 
@@ -47,7 +48,7 @@ def convert_date_utcs(date: str, utc: str):
         date_str = pd.NaT
     else:
         date_str = date.strip().replace('"', "") + " " + utc.strip().replace('"', "")
-    return pd.to_datetime(date_str, format=fmt, errors="coerce")
+    return pd.to_datetime(date_str, format=fmt, errors="coerce", utc=with_utc_tzinfo)
 
 
 def check_and_convert_start_end_times(start_time, end_time):
@@ -81,6 +82,16 @@ def add_datetime_column(df: pd.DataFrame, dt_name: str = "dt") -> pd.DataFrame:
     df[dt_name] = df.apply(
         lambda row: convert_date_utcs(row["Date"], row["UTC"]), axis=1
     )
+    return df
+
+
+def add_marsyear_column(
+    df: pd.DataFrame, marsyear_column_name: str = "MY", dt_name: str = "dt"
+) -> pd.DataFrame:
+    """
+    Add column with Clancy Mars Year integer from datetime column.
+    """
+    df[marsyear_column_name] = df[dt_name].apply(lambda x: datetime_to_marstime(x).year)
     return df
 
 

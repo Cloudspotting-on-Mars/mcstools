@@ -1,0 +1,26 @@
+filter:
+  Obs_qual: [0, 1, 10]
+
+location:
+  dt: "2007-12-22 16:20:20"
+  Profile_lat: -6.6
+  Profile_lon: 86
+  LTST: 0.0958
+
+bin:
+  L_s:
+    Start: 0
+    Stop: 360
+    Step: 5
+  Profile_lat:
+    Start: -90
+    Stop: 90
+    Step: 15
+  Profile_lon:
+    Start: -180
+    Stop: 180
+    Step: 15
+  LTST:
+    Start: 0
+    Stop: 1
+    Step: 0.25
