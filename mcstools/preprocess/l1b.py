@@ -131,7 +131,6 @@ class L1BStandardInTrack:
                 "Moved non-UTC timezone into xarray dataset, "
                 f"not sure if tzinfo {tz} carried correctly"
             )
-        print(ds["dt"])
         return ds
 
 
