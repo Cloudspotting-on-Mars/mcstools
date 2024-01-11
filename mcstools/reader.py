@@ -7,7 +7,12 @@ import requests
 
 from mcstools.mcsfile import L1BFile, L2File
 from mcstools.util.log import logger
-from mcstools.util.time import GDS_DATE_FMT, PDS_DATE_FMT, add_datetime_column, add_marsyear_column
+from mcstools.util.time import (
+    GDS_DATE_FMT,
+    PDS_DATE_FMT,
+    add_datetime_column,
+    add_marsyear_column,
+)
 
 
 class Reader:
@@ -139,9 +144,9 @@ class L2Reader(Reader):
             url_text = url_req.text
             lines = url_text.splitlines()
             self.file_length = len(lines)
-        elif url_req.status_code==404:
+        elif url_req.status_code == 404:
             lines = []
-            self.file_length=0
+            self.file_length = 0
         else:
             print(f"Not setup to handle request status code {url_req} from {url}")
         return lines

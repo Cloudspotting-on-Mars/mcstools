@@ -1,6 +1,6 @@
 import datetime as dt
-import pandas as pd
 
+import pandas as pd
 from mars_time import datetime_to_marstime
 
 GDS_DATE_FMT = "%y%m%d%H%M%S"  # Format used in GDS filenames
@@ -84,7 +84,10 @@ def add_datetime_column(df: pd.DataFrame, dt_name: str = "dt") -> pd.DataFrame:
     )
     return df
 
-def add_marsyear_column(df: pd.DataFrame, marsyear_column_name: str = "MY", dt_name: str = "dt") -> pd.DataFrame:
+
+def add_marsyear_column(
+    df: pd.DataFrame, marsyear_column_name: str = "MY", dt_name: str = "dt"
+) -> pd.DataFrame:
     """
     Add column with Clancy Mars Year integer from datetime column.
     """

@@ -43,7 +43,9 @@ class L1BLoader:
                     pieces.append(fdf)
                 df = pd.concat(pieces)
             else:
-                dfs = [delayed(self.reader.read)(f, None, add_cols) for f in sorted(files)]
+                dfs = [
+                    delayed(self.reader.read)(f, None, add_cols) for f in sorted(files)
+                ]
                 df = dd.from_delayed(dfs)
         return df
 
@@ -202,7 +204,8 @@ class L2Loader:
         _: loaded L2 data
         """
         print(f"Determining approximate start/end dates for " f"range: {start} - {end}")
-        # Overshoot on both sides, then fix after data is loaded (remove tz-aware from MarsTime)
+        # Overshoot on both sides, then fix after data is loaded
+        # (remove tz-aware from MarsTime)
         date_start = marstime_to_datetime(start) - dt.timedelta(days=2)
         date_end = marstime_to_datetime(end) + dt.timedelta(days=2)
         data = self.load_date_range(

@@ -1,11 +1,10 @@
-import click
 import datetime as dt
+
 import numpy as np
 import pandas as pd
 import xarray as xr
 from mars_time import MarsTime, datetime_to_marstime, marstime_to_datetime
 
-from mcstools.loader import L2Loader
 from mcstools.util.io import load_yaml
 
 """
@@ -145,14 +144,17 @@ def bin_ddr1_profiles(ddr1_df: pd.DataFrame, bin_config: dict) -> pd.DataFrame:
     return ddr1_df
 
 
-def convert_binned_df_to_xarray(binned_df: pd.DataFrame, bin_config: dict) -> xr.DataArray:
+def convert_binned_df_to_xarray(
+    binned_df: pd.DataFrame, bin_config: dict
+) -> xr.DataArray:
     binned_grouped = binned_df.groupby(
         [f"{x}_mid" for x in bin_config.keys()], as_index=True
     )["Profile_identifier"].agg(list)
     binned_xr = binned_grouped.to_xarray()
     return binned_xr
 
-class ConfigParser():
+
+class ConfigParser:
     def __init__(self) -> None:
         pass
 
@@ -161,22 +163,28 @@ class ConfigParser():
             for key, val in config_data.items():
                 if type(val) is dict:
                     if "Step" in val.keys():
-                        yaml_dict[config_type][key] = (val["Start"], val["Stop"], val["Step"])
+                        yaml_dict[config_type][key] = (
+                            val["Start"],
+                            val["Stop"],
+                            val["Step"],
+                        )
                     else:
                         yaml_dict[config_type][key] = (val["Start"], val["Stop"])
             if "dt" in config_data.keys():
                 if type(config_data["dt"]) is str:
-                    yaml_dict[config_type]["dt"] = dt.datetime.fromisoformat(config_data["dt"])
+                    yaml_dict[config_type]["dt"] = dt.datetime.fromisoformat(
+                        config_data["dt"]
+                    )
                 elif type(config_data["dt"]) in [tuple, list]:
                     yaml_dict[config_type]["dt"] = (
-                        dt.datetime.fromisoformat(config_data["dt"][x]) for x in config_data["dt"]
+                        dt.datetime.fromisoformat(config_data["dt"][x])
+                        for x in config_data["dt"]
                     )
             if "MY" and "L_s" in config_data.keys():
                 if type(config_data["L_s"]) in [tuple, list]:
                     yaml_dict[config_type]["Marstime"] = tuple(
-                        MarsTime.from_solar_longitude(
-                            config_data["MY"], x
-                        ) for x in config_data["L_s"]
+                        MarsTime.from_solar_longitude(config_data["MY"], x)
+                        for x in config_data["L_s"]
                     )
         return yaml_dict
 

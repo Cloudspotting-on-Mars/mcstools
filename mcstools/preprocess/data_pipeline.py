@@ -1,7 +1,5 @@
 import datetime as dt
 from typing import Union
-import pytz
-from pandas._libs.tslibs.parsing import guess_datetime_format
 
 import numpy as np
 import pandas as pd

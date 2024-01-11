@@ -1,5 +1,6 @@
 import pandas as pd
 import pytz
+
 from mcstools.preprocess.data_pipeline import L1BDataPipeline
 from mcstools.util.log import logger
 
@@ -122,11 +123,14 @@ class L1BStandardInTrack:
             include_cols
         ].to_xarray()
         # Xarray treats datetimes as naive/UTC
-        tz=df["dt"].iloc[0].tz
+        tz = df["dt"].iloc[0].tz
         ds["dt"] = pd.DatetimeIndex(ds["dt"])
         if tz != pytz.utc:
             # Warn if input was not UTC
-            print(f"Moved non-UTC timezone into xarray dataset, not sure if tzinfo {tz} carried correctly")
+            print(
+                "Moved non-UTC timezone into xarray dataset, "
+                f"not sure if tzinfo {tz} carried correctly"
+            )
         print(ds["dt"])
         return ds
 
