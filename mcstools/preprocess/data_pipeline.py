@@ -198,7 +198,7 @@ class L1BDataPipeline(DataPipeline):
     l1bcols = l1bfile.columns  # all columns of L1b data file
     radcols = l1bfile.radcols
     l1bagg = L1BAggregator()
-    az_range_map = {"in": (170, 190), "left": (80, 100), "right": (260, 280)}
+    az_range_map = {"in": (170, 190), "left": (80, 100), "right": (260, 280), "aft": (0, 3)}
 
     def __init__(self):
         super().__init__()
@@ -362,6 +362,11 @@ class L1BDataPipeline(DataPipeline):
             and last_az_cmd < self.az_range_map["right"][1]
         ):
             return "right"
+        elif (
+            last_az_cmd >= self.az_range_map["aft"][0]
+            and last_az_cmd < self.az_range_map["aft"][1]
+        ):
+            return "aft"
         else:
             return np.nan
 

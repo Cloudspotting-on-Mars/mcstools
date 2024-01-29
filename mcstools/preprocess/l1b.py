@@ -16,6 +16,7 @@ class L1BOnPlanetInTrack:
         gqual=[0, 5, 6],
         rolling=[0],
         moving=[0],
+        include_aft = False,
     ):
         self.scene_alt_range = scene_alt_range
         self.elevation_angle_range = elevation_angle_range
@@ -23,6 +24,9 @@ class L1BOnPlanetInTrack:
         self.gqual = gqual
         self.rolling = rolling
         self.moving = moving
+        self.directions = ["in"]
+        if include_aft:
+            self.directions.append("aft")
 
     def preprocess(self, df):
         """
@@ -47,7 +51,7 @@ class L1BOnPlanetInTrack:
         if len(self.moving) > 0:
             df = pipe.select_Moving(df, flag_values=self.moving)
         df = pipe.add_direction_column(df)
-        df = pipe.select_direction(df, "in")
+        df = pipe.select_direction(df, self.directions)
         df = pipe.add_LTST_column(df)
         return df
 
@@ -61,6 +65,7 @@ class L1BStandardInTrack:
         gqual=[0, 5, 6],
         rolling=[0],
         moving=[0],
+        include_aft=False
     ):
         self.limb_scene_alt_range = limb_scene_alt_range
         self.first_limb_col_sec_between = first_limb_col_sec_between
@@ -68,6 +73,9 @@ class L1BStandardInTrack:
         self.gqual = gqual
         self.rolling = rolling
         self.moving = moving
+        self.directions = ["in"]
+        if include_aft:
+            self.directions.append("aft")
 
     def preprocess(self, df, average_sequences=True):
         """
@@ -97,7 +105,7 @@ class L1BStandardInTrack:
         if len(self.moving) > 0:
             df = pipe.select_Moving(df, flag_values=self.moving)
         df = pipe.add_direction_column(df)
-        df = pipe.select_direction(df, "in")
+        df = pipe.select_direction(df, self.directions)
         df = pipe.add_LTST_column(df)
         if average_sequences:
             # Average

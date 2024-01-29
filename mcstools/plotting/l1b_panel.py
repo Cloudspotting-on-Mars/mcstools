@@ -88,7 +88,7 @@ def main(filestr) -> None:
             f
         )  # make single file path/url
         df = loader.load([path])  # load single 4-hour file
-        processer = L1BStandardInTrack()  # initialize processer
+        processer = L1BStandardInTrack(include_aft=True)  # initialize processer
         df = processer.preprocess(df)  # reduce to in-track sequence-averaged data
         df_xr = processer.melt_to_xarray(
             df, include_cols=["Radiance", "Scene_lat", "Scene_lon", "LTST", "L_sub_s"]
