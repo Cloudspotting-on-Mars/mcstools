@@ -5,6 +5,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from mars_time import MarsTime, marstime_to_datetime
 
+from mcstools.util.log import logger
 from mcstools.util.time import GDS_DATE_FMT, round_to_x_hour
 
 # TODO: check_file_exists shouldn't be part of path handler, should be part of loader
@@ -93,6 +94,7 @@ class PDSFileFormatter(FileFormatterBase):
         self._check_valid_level(level)
         self.level = level
         self.data_record = self.level_record_map[level]
+        logger.info("Setup to load L2 files from PDS")
 
     def _check_valid_level(self, level: str) -> None:
         if level not in self.level_record_map.keys():
@@ -147,7 +149,6 @@ class DirectoryFileFormatter(FileFormatterBase):
     level_suffix_map = {"L1B": "L1B", "L2": "L2", "L1A": "L1A", "unpacked": "tab"}
 
     def __init__(self, level: str, mcs_data_path: str = None):
-        load_dotenv()
         self.level = level
         if not mcs_data_path:
             self.mcs_directory = os.getenv("MCS_DATA_DIR_BASE")
@@ -160,6 +161,10 @@ class DirectoryFileFormatter(FileFormatterBase):
             self.mcs_directory = mcs_data_path
         self.setup_subdir_paths()
         self.level_directory = self.build_level_directory(self.level_subdir_map[level])
+        logger.info(
+            "Setup to load L2 files "
+            f"from {self.level_directory}"
+        )
 
     def setup_subdir_paths(self):
         # Initialize default
@@ -169,6 +174,7 @@ class DirectoryFileFormatter(FileFormatterBase):
             "L1A": "level_1a",
             "unpacked": "unpacked",
         }
+        load_dotenv()
         # Update with environment variables
         self.level_subdir_map = {
             "L1B": os.getenv("MCS_LEVEL_1B_SUBDIR"),
