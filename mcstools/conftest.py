@@ -57,9 +57,11 @@ def l2_pds_filename_builder():
 def l2_dir_filename_builder():
     return FilenameBuilder("L2", mcs_data_path="testdir")
 
+
 @pytest.fixture()
 def l1b_pds_fileformatter():
     return PDSFileFormatter("L1B")
+
 
 @pytest.fixture()
 def l2_pds_fileformatter():

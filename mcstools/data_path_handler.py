@@ -161,10 +161,7 @@ class DirectoryFileFormatter(FileFormatterBase):
             self.mcs_directory = mcs_data_path
         self.setup_subdir_paths()
         self.level_directory = self.build_level_directory(self.level_subdir_map[level])
-        logger.info(
-            "Setup to load L2 files "
-            f"from {self.level_directory}"
-        )
+        logger.info("Setup to load L2 files " f"from {self.level_directory}")
 
     def setup_subdir_paths(self):
         # Initialize default

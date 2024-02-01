@@ -8,8 +8,9 @@ from mars_time import MarsTime, marstime_to_datetime
 
 from mcstools.data_path_handler import FilenameBuilder
 from mcstools.reader import L1BReader, L2Reader
-from mcstools.util.time import check_and_convert_start_end_times
 from mcstools.util.log import logger
+from mcstools.util.time import check_and_convert_start_end_times
+
 
 class L1BLoader:
     """
@@ -197,7 +198,9 @@ class L2Loader:
         -------
         _: loaded L2 data
         """
-        logger.info(f"Determining approximate start/end dates for " f"range: {start} - {end}")
+        logger.info(
+            f"Determining approximate start/end dates for " f"range: {start} - {end}"
+        )
         # Overshoot on both sides, then fix after data is loaded
         # (remove tz-aware from MarsTime)
         date_start = marstime_to_datetime(start) - dt.timedelta(days=2)
