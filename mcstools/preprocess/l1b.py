@@ -16,7 +16,7 @@ class L1BOnPlanetInTrack:
         gqual=[0, 5, 6],
         rolling=[0],
         moving=[0],
-        include_aft = False,
+        include_aft=False,
     ):
         self.scene_alt_range = scene_alt_range
         self.elevation_angle_range = elevation_angle_range
@@ -65,7 +65,7 @@ class L1BStandardInTrack:
         gqual=[0, 5, 6],
         rolling=[0],
         moving=[0],
-        include_aft=False
+        include_aft=False,
     ):
         self.limb_scene_alt_range = limb_scene_alt_range
         self.first_limb_col_sec_between = first_limb_col_sec_between
