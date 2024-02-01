@@ -87,7 +87,7 @@ class FileFormatterBase:
 
 class PDSFileFormatter(FileFormatterBase):
 
-    url_base = "https://atmos.nmsu.edu/PDS/data/"
+    url_base = "https://atmos.nmsu.edu/PDS/data"
 
     def __init__(self, level: str) -> None:
         self._check_valid_level(level)
@@ -159,7 +159,6 @@ class DirectoryFileFormatter(FileFormatterBase):
         else:
             self.mcs_directory = mcs_data_path
         self.setup_subdir_paths()
-
         self.level_directory = self.build_level_directory(self.level_subdir_map[level])
 
     def setup_subdir_paths(self):
@@ -260,47 +259,3 @@ class DirectoryFileFormatter(FileFormatterBase):
             expected_paths = [x for x in expected_paths if x not in ignore]
         paths = [f for f in expected_paths if os.path.exists(f)]
         return paths, dont_exist
-
-
-class DataPathHandler:
-    """
-    Base class for MCS data file path handler.
-    Contains methods to parse filenames, build paths based on dates, etc.
-    """
-
-    # Level specific variables
-    level_dir_name = None  # directory name
-    level_suffix = None  # file suffix
-
-    def __init__(self, mcs_data_path):
-        self.mcs_directory = mcs_data_path
-        self.level_directory = self.__build_level_directory__(self.level_dir_name)
-
-    def find_n_preceding_files_from_date(self, date, n):
-        """
-        Build paths to files before a given date
-        """
-        start = date - dt.timedelta(hours=4 * n)  # get datetime for prev file
-        end = date - dt.timedelta(hours=4)
-        return self.find_files_from_daterange(start, end)
-
-    def find_n_following_files_from_date(self, date, n):
-        """
-        Build paths to files after a given date
-        """
-        start = date + dt.timedelta(hours=4)
-        end = date + dt.timedelta(hours=4 * n)
-        return self.find_files_from_daterange(start, end)
-
-    def find_files_around_date(self, date, n):
-        files_before = self.find_n_preceding_files_from_date(date, n)
-        files_after = self.find_n_following_files_from_date(date, n)
-        file = self.find_file_from_date(date)
-        files = (
-            [x for x in files_before[0] + [file[0]] + files_after[0] if x],
-            [x for x in files_before[1] + [file[1]] + files_after[1] if x],
-        )
-        return (sorted(files[0]), sorted(files[1]))
-
-    def find_files_around_file(self, f, n):
-        return self.find_files_around_date(self.__path_to_filedt__(f), n)
