@@ -5,6 +5,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from mars_time import MarsTime, marstime_to_datetime
 
+from mcstools.util.log import logger
 from mcstools.util.time import GDS_DATE_FMT, round_to_x_hour
 
 # TODO: check_file_exists shouldn't be part of path handler, should be part of loader
@@ -87,12 +88,13 @@ class FileFormatterBase:
 
 class PDSFileFormatter(FileFormatterBase):
 
-    url_base = "https://atmos.nmsu.edu/PDS/data/"
+    url_base = "https://atmos.nmsu.edu/PDS/data"
 
     def __init__(self, level: str) -> None:
         self._check_valid_level(level)
         self.level = level
         self.data_record = self.level_record_map[level]
+        logger.info("Setup to load L2 files from PDS")
 
     def _check_valid_level(self, level: str) -> None:
         if level not in self.level_record_map.keys():
@@ -147,7 +149,6 @@ class DirectoryFileFormatter(FileFormatterBase):
     level_suffix_map = {"L1B": "L1B", "L2": "L2", "L1A": "L1A", "unpacked": "tab"}
 
     def __init__(self, level: str, mcs_data_path: str = None):
-        load_dotenv()
         self.level = level
         if not mcs_data_path:
             self.mcs_directory = os.getenv("MCS_DATA_DIR_BASE")
@@ -159,8 +160,8 @@ class DirectoryFileFormatter(FileFormatterBase):
         else:
             self.mcs_directory = mcs_data_path
         self.setup_subdir_paths()
-
         self.level_directory = self.build_level_directory(self.level_subdir_map[level])
+        logger.info("Setup to load L2 files " f"from {self.level_directory}")
 
     def setup_subdir_paths(self):
         # Initialize default
@@ -170,6 +171,7 @@ class DirectoryFileFormatter(FileFormatterBase):
             "L1A": "level_1a",
             "unpacked": "unpacked",
         }
+        load_dotenv()
         # Update with environment variables
         self.level_subdir_map = {
             "L1B": os.getenv("MCS_LEVEL_1B_SUBDIR"),
@@ -260,47 +262,3 @@ class DirectoryFileFormatter(FileFormatterBase):
             expected_paths = [x for x in expected_paths if x not in ignore]
         paths = [f for f in expected_paths if os.path.exists(f)]
         return paths, dont_exist
-
-
-class DataPathHandler:
-    """
-    Base class for MCS data file path handler.
-    Contains methods to parse filenames, build paths based on dates, etc.
-    """
-
-    # Level specific variables
-    level_dir_name = None  # directory name
-    level_suffix = None  # file suffix
-
-    def __init__(self, mcs_data_path):
-        self.mcs_directory = mcs_data_path
-        self.level_directory = self.__build_level_directory__(self.level_dir_name)
-
-    def find_n_preceding_files_from_date(self, date, n):
-        """
-        Build paths to files before a given date
-        """
-        start = date - dt.timedelta(hours=4 * n)  # get datetime for prev file
-        end = date - dt.timedelta(hours=4)
-        return self.find_files_from_daterange(start, end)
-
-    def find_n_following_files_from_date(self, date, n):
-        """
-        Build paths to files after a given date
-        """
-        start = date + dt.timedelta(hours=4)
-        end = date + dt.timedelta(hours=4 * n)
-        return self.find_files_from_daterange(start, end)
-
-    def find_files_around_date(self, date, n):
-        files_before = self.find_n_preceding_files_from_date(date, n)
-        files_after = self.find_n_following_files_from_date(date, n)
-        file = self.find_file_from_date(date)
-        files = (
-            [x for x in files_before[0] + [file[0]] + files_after[0] if x],
-            [x for x in files_before[1] + [file[1]] + files_after[1] if x],
-        )
-        return (sorted(files[0]), sorted(files[1]))
-
-    def find_files_around_file(self, f, n):
-        return self.find_files_around_date(self.__path_to_filedt__(f), n)
