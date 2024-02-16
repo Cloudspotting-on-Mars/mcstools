@@ -141,7 +141,8 @@ class L2Loader:
             for f in sorted(files):
                 try:
                     fdf = self.reader.read(f, ddr, add_cols)
-                except LookupError:
+                except (FileNotFoundError, LookupError) as e:
+                    logger.warning(e)
                     continue
                 if profiles:
                     fdf = fdf[
