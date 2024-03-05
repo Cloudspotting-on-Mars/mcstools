@@ -54,7 +54,7 @@ class L1BLoader:
         print(f"Loading L1B data from {times[0]} - {times[1]}")
         files = self.filename_builder.make_filenames_from_daterange(*times)
         data = self.load(files, add_cols=add_cols, **kwargs)
-        data = data[(data["dt"] >= start_time) & (data["dt"] < end_time)]
+        data = data[(data["dt"] >= times[0]) & (data["dt"] < times[1])]
         return data
 
     def load_from_filestr(self, filestr, **kwargs):

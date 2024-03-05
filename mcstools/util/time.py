@@ -1,7 +1,10 @@
 import datetime as dt
 
 import pandas as pd
+import pytz
 from mars_time import datetime_to_marstime
+
+from mcstools.util.log import logger
 
 GDS_DATE_FMT = "%y%m%d%H%M%S"  # Format used in GDS filenames
 PDS_DATE_FMT = "%Y%m%d%H"  # Format used in PDS filenames
@@ -51,6 +54,20 @@ def convert_date_utcs(date: str, utc: str, with_utc_tzinfo=True):
     return pd.to_datetime(date_str, format=fmt, errors="coerce", utc=with_utc_tzinfo)
 
 
+def check_and_convert_tzinfo(time):
+    if time.tzinfo is None:
+        logger.debug("Converting tz-naive time to UTC")
+        time = time.replace(tzinfo=dt.timezone.utc)
+    elif time.tzinfo in [dt.timezone.utc, pytz.utc]:
+        pass
+    else:
+        raise ValueError(
+            f"time {time} is tz-aware, but not UTC."
+            "Converting non-UTC to UTC not implemented."
+        )
+    return time
+
+
 def check_and_convert_start_end_times(start_time, end_time):
     times = [start_time, end_time]
     for i, t in enumerate(times):
@@ -61,6 +78,7 @@ def check_and_convert_start_end_times(start_time, end_time):
             )
         elif type(t) == str:
             times[i] = dt.datetime.fromisoformat(t)
+        times[i] = check_and_convert_tzinfo(times[i])
     return times
 
 
