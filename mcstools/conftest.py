@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pytest
 
-from mcstools.data_path_handler import FilenameBuilder
+from mcstools.data_path_handler import FilenameBuilder, PDSFileFormatter
 from mcstools.mcsfile import L1BFile, L2File
 from mcstools.reader import L1BReader, L2Reader
 
@@ -56,6 +56,16 @@ def l2_pds_filename_builder():
 @pytest.fixture()
 def l2_dir_filename_builder():
     return FilenameBuilder("L2", mcs_data_path="testdir")
+
+
+@pytest.fixture()
+def l1b_pds_fileformatter():
+    return PDSFileFormatter("L1B")
+
+
+@pytest.fixture()
+def l2_pds_fileformatter():
+    return PDSFileFormatter("L2")
 
 
 @pytest.fixture()

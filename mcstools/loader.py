@@ -8,6 +8,7 @@ from mars_time import MarsTime, marstime_to_datetime
 
 from mcstools.data_path_handler import FilenameBuilder
 from mcstools.reader import L1BReader, L2Reader
+from mcstools.util.log import logger
 from mcstools.util.time import check_and_convert_start_end_times
 
 
@@ -36,9 +37,9 @@ class L1BLoader:
                     try:
                         fdf = self.reader.read(f, add_cols=add_cols)
                     except LookupError as error:
-                        print(error)
+                        logger.error(error)
                     except FileNotFoundError as error:
-                        print(error, "\nIgnoring.")
+                        logger.error(error, "\nIgnoring.")
                         continue
                     pieces.append(fdf)
                 df = pd.concat(pieces)
@@ -51,7 +52,7 @@ class L1BLoader:
 
     def load_date_range(self, start_time, end_time, add_cols=["dt"], **kwargs):
         times = check_and_convert_start_end_times(start_time, end_time)
-        print(f"Loading L1B data from {times[0]} - {times[1]}")
+        logger.info(f"Loading L1B data from {times[0]} - {times[1]}")
         files = self.filename_builder.make_filenames_from_daterange(*times)
         data = self.load(files, add_cols=add_cols, **kwargs)
         data = data[(data["dt"] >= times[0]) & (data["dt"] < times[1])]
@@ -80,13 +81,6 @@ class L2Loader:
         self.filename_builder = FilenameBuilder(
             "L2", pds=pds, mcs_data_path=mcs_data_path
         )  # fore creating paths/urls
-        if not pds:
-            print(
-                "Setup to load L2 files "
-                f"from {self.filename_builder.handler.level_directory}"
-            )
-        else:
-            print("Setup to load L2 files from PDS")
         self.reader = L2Reader(pds=pds)  # file reader
 
     def load(
@@ -140,13 +134,15 @@ class L2Loader:
         """
         Read and concatenate L2 files
         """
+        logger.info(f"Loading L2 {ddr} data ({len(files)} files).")
         if not dask:
             # Read in fiels one by one
             pieces = []  # initialize list of DFs
             for f in sorted(files):
                 try:
                     fdf = self.reader.read(f, ddr, add_cols)
-                except LookupError:
+                except (FileNotFoundError, LookupError) as e:
+                    logger.warning(e)
                     continue
                 if profiles:
                     fdf = fdf[
@@ -174,7 +170,7 @@ class L2Loader:
         else:
             required_cols = add_cols
             remove_cols = []
-        print(f"Loading L2 {ddr} data from {times[0]} - {times[1]}")
+        logger.info(f"Loading L2 {ddr} data from {times[0]} - {times[1]}")
         files = self.filename_builder.make_filenames_from_daterange(*times)
         data = self.load(
             ddr, files=files, add_cols=required_cols
@@ -203,7 +199,9 @@ class L2Loader:
         -------
         _: loaded L2 data
         """
-        print(f"Determining approximate start/end dates for " f"range: {start} - {end}")
+        logger.info(
+            f"Determining approximate start/end dates for " f"range: {start} - {end}"
+        )
         # Overshoot on both sides, then fix after data is loaded
         # (remove tz-aware from MarsTime)
         date_start = marstime_to_datetime(start) - dt.timedelta(days=2)
@@ -220,10 +218,16 @@ class L2Loader:
         return data
 
     def merge_ddrs(self, ddr2_df, ddr1_df):
-        return pd.merge(
+        logger.info(
+            f"Merging DDR1 (shape: {ddr1_df.shape}) profile metadata to "
+            f"DDR2 profiles: (shape: {ddr2_df.shape})"
+        )
+        merged = pd.merge(
             ddr2_df,
             ddr1_df,
             on="Profile_identifier",
             how="outer",
             suffixes=("", "_DDR1"),
         )
+        logger.info(f"Merged: {merged.shape}:\n{merged.head()}")
+        return merged
