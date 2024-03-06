@@ -132,7 +132,6 @@ class L2Loader:
                 self.filename_builder.make_filename_from_filestr(f) for f in filestrs
             ]
         # Only one file, just read
-        print(files)
         if not isinstance(files, (list, np.ndarray, pd.Series)):
             df = self.reader.read(files, ddr, add_cols)
             # Specific profiles, reduce data set
