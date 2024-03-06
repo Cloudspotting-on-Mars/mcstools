@@ -26,7 +26,7 @@ class L1BLoader:
         self.reader = L1BReader(pds=pds)
 
     def load(self, files, dask=False, add_cols: list = None):
-        if type(files).isinstance(list):
+        if isinstance(files, list):
             return self.reader.read(files, add_cols=add_cols)
         elif len(files) == 0:
             df = pd.DataFrame(columns=self.columns)
@@ -192,7 +192,7 @@ class L2Loader:
         return data
     
     def load_from_datetimes(self, ddr, datetimes, **kwargs):
-        if type(datetimes).isinstance(pd.Series):
+        if isinstance(datetimes, pd.Series):
             datetimes = datetimes.unique()
         elif type(datetimes).isinstance(list):
             datetimes = list(set(datetimes))
