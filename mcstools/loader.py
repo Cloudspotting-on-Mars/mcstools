@@ -26,7 +26,7 @@ class L1BLoader:
         self.reader = L1BReader(pds=pds)
 
     def load(self, files, dask=False, add_cols: list = None):
-        if type(files) != list:
+        if type(files).isinstance(list):
             return self.reader.read(files, add_cols=add_cols)
         elif len(files) == 0:
             df = pd.DataFrame(columns=self.columns)
@@ -61,6 +61,17 @@ class L1BLoader:
     def load_from_filestr(self, filestr, **kwargs):
         file = self.filename_builder.make_filename_from_filestr(filestr)
         return self.load(file, **kwargs)
+    
+    def load_from_datetimes(self, datetimes, **kwargs):
+        if type(datetimes).isinstance(pd.Series):
+            datetimes = datetimes.unique()
+        elif type(datetimes).isinstance(list):
+            datetimes = list(set(datetimes))
+        else:
+            raise NotImplementedError(f"Loading from {type(datetimes)} not implemented.")
+        filestrs = [self.filename_builder.handler.convert_filestr_to_dt(d) for d in datetimes]
+        files = [self.filename_builder.make_filename_from_filestr(f) for f in filestrs]
+        return self.load(files)
 
     def load_files_around_date(self, date, n=1, **kwargs):
         files, _ = self.find_files_around_date(date, n)
@@ -112,7 +123,7 @@ class L2Loader:
                 self.filename_builder.make_filename_from_filestr(f) for f in filestrs
             ]
         # Only one file, just read
-        if type(files) != list:
+        if type(files).isinstance(list):
             df = self.reader.read(files, ddr, add_cols)
             # Specific profiles, reduce data set
             if profiles:
@@ -179,6 +190,17 @@ class L2Loader:
             data = data[(data["dt"] >= times[0]) & (data["dt"] < times[1])]
         data = data.drop(columns=remove_cols)
         return data
+    
+    def load_from_datetimes(self, ddr, datetimes, **kwargs):
+        if type(datetimes).isinstance(pd.Series):
+            datetimes = datetimes.unique()
+        elif type(datetimes).isinstance(list):
+            datetimes = list(set(datetimes))
+        else:
+            raise NotImplementedError(f"Loading from {type(datetimes)} not implemented.")
+        filestrs = [self.filename_builder.handler.convert_filestr_to_dt(d) for d in datetimes]
+        files = [self.filename_builder.make_filename_from_filestr(f) for f in filestrs]
+        return self.load(ddr, files, *kwargs)
 
     def load_ls_range(
         self,
