@@ -2,6 +2,7 @@ import datetime as dt
 from typing import Union
 
 import dask.dataframe as dd
+import numpy as np
 import pandas as pd
 from dask import delayed
 from mars_time import MarsTime, marstime_to_datetime
@@ -26,7 +27,7 @@ class L1BLoader:
         self.reader = L1BReader(pds=pds)
 
     def load(self, files, dask=False, add_cols: list = None):
-        if type(files) != list:
+        if not isinstance(files, (list, np.ndarray, pd.Series)):
             return self.reader.read(files, add_cols=add_cols)
         elif len(files) == 0:
             df = pd.DataFrame(columns=self.columns)
@@ -61,6 +62,25 @@ class L1BLoader:
     def load_from_filestr(self, filestr, **kwargs):
         file = self.filename_builder.make_filename_from_filestr(filestr)
         return self.load(file, **kwargs)
+
+    def load_from_datetimes(self, datetimes, **kwargs):
+        """
+        Given a list of datetimes (does not need to be same precision as in MCS data),
+        load all files with those datetimes [does not reduce to only those datetimes].
+        """
+        if isinstance(datetimes, pd.Series):
+            pass
+        elif isinstance(datetimes, list):
+            datetimes = pd.Series(datetimes)
+        else:
+            raise NotImplementedError(
+                f"Loading from {type(datetimes)} not implemented."
+            )
+        filestrs = datetimes.apply(self.filename_builder.handler.convert_dt_to_filestr)
+        files = filestrs.apply(
+            self.filename_builder.make_filename_from_filestr
+        ).unique()
+        return self.load(files)
 
     def load_files_around_date(self, date, n=1, **kwargs):
         files, _ = self.find_files_around_date(date, n)
@@ -112,7 +132,7 @@ class L2Loader:
                 self.filename_builder.make_filename_from_filestr(f) for f in filestrs
             ]
         # Only one file, just read
-        if type(files) != list:
+        if not isinstance(files, (list, np.ndarray, pd.Series)):
             df = self.reader.read(files, ddr, add_cols)
             # Specific profiles, reduce data set
             if profiles:
@@ -179,6 +199,25 @@ class L2Loader:
             data = data[(data["dt"] >= times[0]) & (data["dt"] < times[1])]
         data = data.drop(columns=remove_cols)
         return data
+
+    def load_from_datetimes(self, ddr, datetimes, **kwargs):
+        """
+        Given a list of datetimes (does not need to be same precision as in MCS data),
+        load all files with those datetimes [does not reduce to only those datetimes].
+        """
+        if isinstance(datetimes, pd.Series):
+            pass
+        elif isinstance(datetimes, list):
+            datetimes = pd.Series(datetimes)
+        else:
+            raise NotImplementedError(
+                f"Loading from {type(datetimes)} not implemented."
+            )
+        filestrs = datetimes.apply(self.filename_builder.handler.convert_dt_to_filestr)
+        files = filestrs.apply(
+            self.filename_builder.make_filename_from_filestr
+        ).unique()
+        return self.load(ddr, files, **kwargs)
 
     def load_ls_range(
         self,
