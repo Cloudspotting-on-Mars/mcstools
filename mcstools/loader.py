@@ -69,7 +69,7 @@ class L1BLoader:
             datetimes = list(set(datetimes))
         else:
             raise NotImplementedError(f"Loading from {type(datetimes)} not implemented.")
-        filestrs = [self.filename_builder.handler.convert_filestr_to_dt(d) for d in datetimes]
+        filestrs = [self.filename_builder.handler.convert_dt_to_filestr(d) for d in datetimes]
         files = [self.filename_builder.make_filename_from_filestr(f) for f in filestrs]
         return self.load(files)
 
@@ -198,7 +198,7 @@ class L2Loader:
             datetimes = list(set(datetimes))
         else:
             raise NotImplementedError(f"Loading from {type(datetimes)} not implemented.")
-        filestrs = [self.filename_builder.handler.convert_filestr_to_dt(d) for d in datetimes]
+        filestrs = [self.filename_builder.handler.convert_dt_to_filestr(d) for d in datetimes]
         files = [self.filename_builder.make_filename_from_filestr(f) for f in filestrs]
         return self.load(ddr, files, *kwargs)
 
