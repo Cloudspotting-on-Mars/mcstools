@@ -61,25 +61,33 @@ class L1BLoader:
     def load_from_filestr(self, filestr, **kwargs):
         file = self.filename_builder.make_filename_from_filestr(filestr)
         return self.load(file, **kwargs)
-    
+
     def load_from_datetimes(self, datetimes, **kwargs):
         if type(datetimes).isinstance(pd.Series):
             datetimes = datetimes.unique()
         elif type(datetimes).isinstance(list):
             datetimes = list(set(datetimes))
         else:
-            raise NotImplementedError(f"Loading from {type(datetimes)} not implemented.")
-        filestrs = [self.filename_builder.handler.convert_dt_to_filestr(d) for d in datetimes]
+            raise NotImplementedError(
+                f"Loading from {type(datetimes)} not implemented."
+            )
+        filestrs = [
+            self.filename_builder.handler.convert_dt_to_filestr(d) for d in datetimes
+        ]
         files = [self.filename_builder.make_filename_from_filestr(f) for f in filestrs]
         return self.load(files)
 
-    def load_files_around_date(self, date, n=1, **kwargs):
-        files, _ = self.find_files_around_date(date, n)
-        return self.load(files, *kwargs)
-
     def load_files_around_file(self, f, n=1, **kwargs):
-        files, _ = self.find_files_around_file(f, n)
-        return self.load(files, *kwargs)
+        start_time = self.filename_builder.handler.convert_filestr_to_dt(
+            f
+        ) - dt.timedelta(hours=4 * n)
+        end_time = self.filename_builder.handler.convert_filestr_to_dt(
+            f
+        ) + dt.timedelta(hours=4 * n)
+        filestrs = self.filename_builder._build_filestrs_from_daterange(
+            start_time, end_time
+        )
+        return self.load(filestrs, *kwargs)
 
 
 class L2Loader:
@@ -190,15 +198,19 @@ class L2Loader:
             data = data[(data["dt"] >= times[0]) & (data["dt"] < times[1])]
         data = data.drop(columns=remove_cols)
         return data
-    
+
     def load_from_datetimes(self, ddr, datetimes, **kwargs):
         if isinstance(datetimes, pd.Series):
             datetimes = datetimes.unique()
         elif type(datetimes).isinstance(list):
             datetimes = list(set(datetimes))
         else:
-            raise NotImplementedError(f"Loading from {type(datetimes)} not implemented.")
-        filestrs = [self.filename_builder.handler.convert_dt_to_filestr(d) for d in datetimes]
+            raise NotImplementedError(
+                f"Loading from {type(datetimes)} not implemented."
+            )
+        filestrs = [
+            self.filename_builder.handler.convert_dt_to_filestr(d) for d in datetimes
+        ]
         files = [self.filename_builder.make_filename_from_filestr(f) for f in filestrs]
         return self.load(ddr, files, *kwargs)
 
