@@ -77,16 +77,35 @@ class L1BLoader:
         files = [self.filename_builder.make_filename_from_filestr(f) for f in filestrs]
         return self.load(files)
 
-    def load_files_around_file(self, f, n=1, **kwargs):
-        start_time = self.filename_builder.handler.convert_filestr_to_dt(
-            f
-        ) - dt.timedelta(hours=4 * n)
-        end_time = self.filename_builder.handler.convert_filestr_to_dt(
-            f
-        ) + dt.timedelta(hours=4 * n)
-        filestrs = self.filename_builder._build_filestrs_from_daterange(
-            start_time, end_time
-        )
+    def load_files_around_file(self, f: str, n: int = 1, **kwargs) -> pd.DataFrame:
+        """
+        Load file and n files before and after it (if they exist)
+
+        Sometimes it's beneficial to load the files before/after to get
+        information about the boundaries.
+
+        Parameters
+        ----------
+        f: filestr (YYMMDDHHMMSS format)
+        n: Number of files before and after to load
+            0 will load only given f
+
+        Returns
+        -------
+        _: L1B data
+        """
+        if n > 0:
+            start_time = self.filename_builder.handler.convert_filestr_to_dt(
+                f
+            ) - dt.timedelta(hours=4 * n)
+            end_time = self.filename_builder.handler.convert_filestr_to_dt(
+                f
+            ) + dt.timedelta(hours=4 * n)
+            filestrs = self.filename_builder._build_filestrs_from_daterange(
+                start_time, end_time
+            )
+        else:
+            filestrs = [f]
         return self.load(filestrs, *kwargs)
 
 
