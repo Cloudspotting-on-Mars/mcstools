@@ -26,7 +26,7 @@ class L1BLoader:
         self.reader = L1BReader(pds=pds)
 
     def load(self, files, dask=False, add_cols: list = None):
-        if isinstance(files, list):
+        if not isinstance(files, list):
             return self.reader.read(files, add_cols=add_cols)
         elif len(files) == 0:
             df = pd.DataFrame(columns=self.columns)
