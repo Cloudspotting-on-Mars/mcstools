@@ -106,7 +106,8 @@ class L1BLoader:
             )
         else:
             filestrs = [f]
-        return self.load(filestrs, *kwargs)
+        files = [self.filename_builder.make_filename_from_filestr(f) for f in filestrs]
+        return self.load(files, *kwargs)
 
 
 class L2Loader:
