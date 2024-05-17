@@ -159,7 +159,7 @@ class L2Loader:
         if not isinstance(files, (list, np.ndarray, pd.Series)):
             df = self.reader.read(files, ddr, add_cols)
             # Specific profiles, reduce data set
-            if profiles:
+            if profiles is not None:
                 df = df[df["Profile_identifier"].isin(profiles)]
         # No files, make empty DF
         elif len(files) == 0:
@@ -188,7 +188,7 @@ class L2Loader:
                 except (FileNotFoundError, LookupError) as e:
                     logger.warning(e)
                     continue
-                if profiles:
+                if profiles is not None:
                     fdf = fdf[
                         fdf["Profile_identifier"].isin(profiles)
                     ]  # Reduce to subset
