@@ -175,8 +175,8 @@ class L2Reader(Reader):
             ddr_line = lines[len(self.comments) + i]
             file_columns[ddr] = [x.strip() for x in ddr_line.rstrip().split(",")]
             check_result = self.check_column_names(file_columns[ddr], ddr)
-            #if not check_result:
-            #    print(f"Problem loading {self.path}")
+            if not check_result:
+                print(f"Problem loading {self.path}")
         return file_columns
 
     def check_column_names(self, column_names, DDRN):
