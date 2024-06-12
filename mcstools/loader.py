@@ -193,7 +193,13 @@ class L2Loader:
                         fdf["Profile_identifier"].isin(profiles)
                     ]  # Reduce to subset
                 pieces.append(fdf)
-            df = pd.concat(pieces, ignore_index=True)  # combine
+            if len(pieces) == 0:
+                empty_df_cols = self.reader.data_records[ddr]["columns"]
+                if add_cols is not None:
+                    empty_df_cols += add_cols
+                df = pd.DataFrame(columns=empty_df_cols)
+            else:
+                df = pd.concat(pieces, ignore_index=True)  # combine
         else:
             dfs = [delayed(self.reader.read)(f, ddr, add_cols) for f in sorted(files)]
             df = dd.from_delayed(dfs)
