@@ -225,8 +225,11 @@ class L2Loader:
         data = self.load(
             ddr, files=files, add_cols=required_cols
         )  # , profiles=profiles)
-        if ddr == "DDR1":
-            data = data[(data["dt"] >= times[0]) & (data["dt"] < times[1])]
+        if data.empty:
+            return data
+        else:
+            if ddr == "DDR1":
+                data = data[(data["dt"] >= times[0]) & (data["dt"] < times[1])]
         data = data.drop(columns=remove_cols)
         return data
 
