@@ -46,7 +46,8 @@ class L1BLoader:
                 df = pd.concat(pieces)
             else:
                 dfs = [
-                    delayed(self.reader.read)(f, None, add_cols, **kwargs) for f in sorted(files)
+                    delayed(self.reader.read)(f, None, add_cols, **kwargs)
+                    for f in sorted(files)
                 ]
                 df = dd.from_delayed(dfs)
         return df
