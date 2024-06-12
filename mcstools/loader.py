@@ -26,9 +26,9 @@ class L1BLoader:
         )
         self.reader = L1BReader(pds=pds)
 
-    def load(self, files, dask=False, add_cols: list = None):
+    def load(self, files, dask=False, add_cols: list = None, **kwargs):
         if not isinstance(files, (list, np.ndarray, pd.Series)):
-            return self.reader.read(files, add_cols=add_cols)
+            return self.reader.read(files, add_cols=add_cols, **kwargs)
         elif len(files) == 0:
             df = pd.DataFrame(columns=self.columns)
         else:
@@ -82,12 +82,36 @@ class L1BLoader:
         ).unique()
         return self.load(files)
 
-    def load_files_around_date(self, date, n=1, **kwargs):
-        files, _ = self.find_files_around_date(date, n)
-        return self.load(files, *kwargs)
+    def load_files_around_file(self, f: str, n: int = 1, **kwargs) -> pd.DataFrame:
+        """
+        Load file and n files before and after it (if they exist)
 
-    def load_files_around_file(self, f, n=1, **kwargs):
-        files, _ = self.find_files_around_file(f, n)
+        Sometimes it's beneficial to load the files before/after to get
+        information about the boundaries.
+
+        Parameters
+        ----------
+        f: filestr (YYMMDDHHMMSS format)
+        n: Number of files before and after to load
+            0 will load only given f
+
+        Returns
+        -------
+        _: L1B data
+        """
+        if n > 0:
+            start_time = self.filename_builder.handler.convert_filestr_to_dt(
+                f
+            ) - dt.timedelta(hours=4 * n)
+            end_time = self.filename_builder.handler.convert_filestr_to_dt(
+                f
+            ) + dt.timedelta(hours=4 * n)
+            filestrs = self.filename_builder._build_filestrs_from_daterange(
+                start_time, end_time
+            )
+        else:
+            filestrs = [f]
+        files = [self.filename_builder.make_filename_from_filestr(f) for f in filestrs]
         return self.load(files, *kwargs)
 
 
@@ -135,7 +159,7 @@ class L2Loader:
         if not isinstance(files, (list, np.ndarray, pd.Series)):
             df = self.reader.read(files, ddr, add_cols)
             # Specific profiles, reduce data set
-            if profiles:
+            if profiles is not None:
                 df = df[df["Profile_identifier"].isin(profiles)]
         # No files, make empty DF
         elif len(files) == 0:
@@ -164,7 +188,7 @@ class L2Loader:
                 except (FileNotFoundError, LookupError) as e:
                     logger.warning(e)
                     continue
-                if profiles:
+                if profiles is not None:
                     fdf = fdf[
                         fdf["Profile_identifier"].isin(profiles)
                     ]  # Reduce to subset

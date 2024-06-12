@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from mars_time import MarsTime, marstime_to_datetime
 
 from mcstools.util.log import logger
-from mcstools.util.time import GDS_DATE_FMT, round_to_x_hour
+from mcstools.util.time import GDS_DATE_FMT, check_and_convert_tzinfo, round_to_x_hour
 
 # TODO: check_file_exists shouldn't be part of path handler, should be part of loader
 # TODO: make_n_before_after(f, before, after)
@@ -83,7 +83,7 @@ class FileFormatterBase:
     def convert_filestr_to_dt(self, filestr: str) -> dt.datetime:
         "Convert 12-digit filebase structure to datetime"
         filedt = dt.datetime.strptime(filestr, GDS_DATE_FMT)
-        return filedt
+        return check_and_convert_tzinfo(filedt)
 
 
 class PDSFileFormatter(FileFormatterBase):

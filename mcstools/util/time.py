@@ -4,8 +4,6 @@ import pandas as pd
 import pytz
 from mars_time import datetime_to_marstime
 
-from mcstools.util.log import logger
-
 GDS_DATE_FMT = "%y%m%d%H%M%S"  # Format used in GDS filenames
 PDS_DATE_FMT = "%Y%m%d%H"  # Format used in PDS filenames
 
@@ -56,7 +54,6 @@ def convert_date_utcs(date: str, utc: str, with_utc_tzinfo=True):
 
 def check_and_convert_tzinfo(time):
     if time.tzinfo is None:
-        logger.debug("Converting tz-naive time to UTC")
         time = time.replace(tzinfo=dt.timezone.utc)
     elif time.tzinfo in [dt.timezone.utc, pytz.utc]:
         pass

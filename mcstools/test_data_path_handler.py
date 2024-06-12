@@ -8,7 +8,9 @@ def test_dt_filestr_conversions():
     date = dt.datetime(2022, 4, 1, 8, 2, 4)
     assert ffb.format_dt_as_filestr(date) == "220401080204"
     assert ffb.convert_dt_to_filestr(date) == "220401080000"
-    assert ffb.convert_filestr_to_dt("220401080000") == dt.datetime(2022, 4, 1, 8)
+    assert ffb.convert_filestr_to_dt("220401080000") == dt.datetime(
+        2022, 4, 1, 8, tzinfo=dt.timezone.utc
+    )
 
 
 def test_build_mrom_str(l1b_pds_fileformatter, l2_pds_fileformatter):
