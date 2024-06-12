@@ -56,7 +56,6 @@ def convert_date_utcs(date: str, utc: str, with_utc_tzinfo=True):
 
 def check_and_convert_tzinfo(time):
     if time.tzinfo is None:
-        logger.debug("Converting tz-naive time to UTC")
         time = time.replace(tzinfo=dt.timezone.utc)
     elif time.tzinfo in [dt.timezone.utc, pytz.utc]:
         pass
