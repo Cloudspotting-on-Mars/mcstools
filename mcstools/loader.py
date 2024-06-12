@@ -26,7 +26,7 @@ class L1BLoader:
         )
         self.reader = L1BReader(pds=pds)
 
-    def load(self, files, dask=False, add_cols: list = None , **kwargs):
+    def load(self, files, dask=False, add_cols: list = None, **kwargs):
         if not isinstance(files, (list, np.ndarray, pd.Series)):
             return self.reader.read(files, add_cols=add_cols, **kwargs)
         elif len(files) == 0:
