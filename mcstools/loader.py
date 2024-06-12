@@ -36,7 +36,7 @@ class L1BLoader:
                 pieces = []
                 for f in sorted(files):
                     try:
-                        fdf = self.reader.read(f, add_cols=add_cols)
+                        fdf = self.reader.read(f, add_cols=add_cols, **kwargs)
                     except LookupError as error:
                         logger.error(error)
                     except FileNotFoundError as error:
@@ -46,7 +46,7 @@ class L1BLoader:
                 df = pd.concat(pieces)
             else:
                 dfs = [
-                    delayed(self.reader.read)(f, None, add_cols) for f in sorted(files)
+                    delayed(self.reader.read)(f, None, add_cols, **kwargs) for f in sorted(files)
                 ]
                 df = dd.from_delayed(dfs)
         return df
@@ -163,9 +163,8 @@ class L2Loader:
                 df = df[df["Profile_identifier"].isin(profiles)]
         # No files, make empty DF
         elif len(files) == 0:
-            empty_df_cols = self.reader.data_records[ddr]["columns"]
             if add_cols is not None:
-                empty_df_cols += add_cols
+                empty_df_cols = self.reader.data_records[ddr]["columns"] + add_cols
             df = pd.DataFrame(columns=empty_df_cols)
         # Load multiple files
         else:
@@ -194,9 +193,8 @@ class L2Loader:
                     ]  # Reduce to subset
                 pieces.append(fdf)
             if len(pieces) == 0:
-                empty_df_cols = self.reader.data_records[ddr]["columns"]
                 if add_cols is not None:
-                    empty_df_cols += add_cols
+                    empty_df_cols = self.reader.data_records[ddr]["columns"] + add_cols
                 df = pd.DataFrame(columns=empty_df_cols)
             else:
                 df = pd.concat(pieces, ignore_index=True)  # combine
@@ -272,7 +270,6 @@ class L2Loader:
             f"Determining approximate start/end dates for " f"range: {start} - {end}"
         )
         # Overshoot on both sides, then fix after data is loaded
-        # (remove tz-aware from MarsTime)
         date_start = marstime_to_datetime(start) - dt.timedelta(days=2)
         date_end = marstime_to_datetime(end) + dt.timedelta(days=2)
         data = self.load_date_range(

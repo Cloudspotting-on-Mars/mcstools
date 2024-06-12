@@ -127,7 +127,6 @@ class L2Reader(Reader):
         """
         self.path = filepath
         self.filename = os.path.splitext(os.path.basename(self.path))[0]
-
         with open(self.path) as f:
             lines = f.readlines()
         self.file_length = len(lines)
@@ -197,7 +196,7 @@ class L2Reader(Reader):
                 f"{DDRN} column names given in {self.filename} do not match expected."
             )
             print(f"Filename: {self.filename}")
-            print(f"Expected {exp_cols} names for DDR{DDRN} row,")
+            print(f"Expected {exp_cols} names for {DDRN} row,")
             print(f"Got: {column_names}")
             return False
         else:
