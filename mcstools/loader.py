@@ -135,6 +135,7 @@ class L2Loader:
         profiles: Union[list, pd.Series] = None,
         add_cols: list = None,
         dask: bool = False,
+        verbose: bool = False,
     ) -> pd.DataFrame:
         """
         Load data record (DDR) of L2 files
@@ -144,6 +145,7 @@ class L2Loader:
         ddr: data record [DDR1, DDR2, DDR3]
         add_cols: additional columns to generate and add ["dt"]
         dask: option to load via dask delay
+        verbose: output log details
         """
         # Setup files to load if only profiles given
         if files is None:
@@ -170,15 +172,36 @@ class L2Loader:
         # Load multiple files
         else:
             df = self._load_by_file(
-                files, ddr, profiles=profiles, add_cols=add_cols, dask=dask
+                files,
+                ddr,
+                profiles=profiles,
+                add_cols=add_cols,
+                dask=dask,
+                verbose=verbose,
             )
         return df
 
-    def _load_by_file(self, files, ddr, profiles=None, add_cols=None, dask=False):
+    def _load_by_file(
+        self,
+        files: list,
+        ddr: str,
+        profiles: list = None,
+        add_cols: list = None,
+        dask: bool = False,
+        verbose: bool = False,
+    ):
         """
         Read and concatenate L2 files
+
+        files: path/url to file(s)
+        profiles: specific profiles to reduce to
+        ddr: data record [DDR1, DDR2, DDR3]
+        add_cols: additional columns to generate and add ["dt"]
+        dask: option to load via dask delay
+        verbose: output log details
         """
-        logger.info(f"Loading L2 {ddr} data ({len(files)} files).")
+        if verbose:
+            logger.info(f"Loading L2 {ddr} data ({len(files)} files).")
         if not dask:
             # Read in fiels one by one
             pieces = []  # initialize list of DFs
@@ -186,7 +209,8 @@ class L2Loader:
                 try:
                     fdf = self.reader.read(f, ddr, add_cols)
                 except (FileNotFoundError, LookupError) as e:
-                    logger.warning(e)
+                    if verbose:
+                        logger.warning(e)
                     continue
                 if profiles is not None:
                     fdf = fdf[
@@ -204,7 +228,25 @@ class L2Loader:
             df = dd.from_delayed(dfs)
         return df
 
-    def load_date_range(self, start_time, end_time, ddr="DDR1", add_cols: list = None):
+    def load_date_range(
+        self,
+        start_time,
+        end_time,
+        ddr="DDR1",
+        add_cols: list = None,
+        verbose=False,
+        **kwargs,
+    ):
+        """
+        Load L2 data between two times
+
+        files: path/url to file(s)
+        profiles: specific profiles to reduce to
+        ddr: data record [DDR1, DDR2, DDR3]
+        add_cols: additional columns to generate and add ["dt"]
+        dask: option to load via dask delay
+        verbose: output log details
+        """
         times = check_and_convert_start_end_times(start_time, end_time)
         if ddr == "DDR1":
             if add_cols is None:
@@ -219,20 +261,30 @@ class L2Loader:
         else:
             required_cols = add_cols
             remove_cols = []
-        logger.info(f"Loading L2 {ddr} data from {times[0]} - {times[1]}")
+        if verbose:
+            logger.info(f"Loading L2 {ddr} data from {times[0]} - {times[1]}")
         files = self.filename_builder.make_filenames_from_daterange(*times)
         data = self.load(
-            ddr, files=files, add_cols=required_cols
-        )  # , profiles=profiles)
+            ddr, files=files, add_cols=required_cols, verbose=verbose, **kwargs
+        )
         if ddr == "DDR1":
             data = data[(data["dt"] >= times[0]) & (data["dt"] < times[1])]
         data = data.drop(columns=remove_cols)
         return data
 
-    def load_from_datetimes(self, ddr, datetimes, **kwargs):
+    def load_from_datetimes(
+        self, ddr: str, datetimes: list, verbose: bool = False, **kwargs
+    ):
         """
         Given a list of datetimes (does not need to be same precision as in MCS data),
         load all files with those datetimes [does not reduce to only those datetimes].
+
+        files: path/url to file(s)
+        profiles: specific profiles to reduce to
+        ddr: data record [DDR1, DDR2, DDR3]
+        add_cols: additional columns to generate and add ["dt"]
+        dask: option to load via dask delay
+        verbose: output log details
         """
         if isinstance(datetimes, pd.Series):
             pass
@@ -246,7 +298,7 @@ class L2Loader:
         files = filestrs.apply(
             self.filename_builder.make_filename_from_filestr
         ).unique()
-        return self.load(ddr, files, **kwargs)
+        return self.load(ddr, files, verbose=verbose, **kwargs)
 
     def load_ls_range(
         self,
@@ -254,6 +306,7 @@ class L2Loader:
         end: MarsTime,
         ddr="DDR1",
         add_cols: list = None,
+        verbose: bool = False,
         **kwargs,
     ) -> pd.DataFrame:
         """
@@ -262,19 +315,27 @@ class L2Loader:
         Parameters
         ----------
         start/end: beginning/end of MY/Ls range
+        files: path/url to file(s)
+        profiles: specific profiles to reduce to
+        ddr: data record [DDR1, DDR2, DDR3]
+        add_cols: additional columns to generate and add ["dt"]
+        dask: option to load via dask delay
+        verbose: output log details
 
         Returns
         -------
         _: loaded L2 data
         """
-        logger.info(
-            f"Determining approximate start/end dates for " f"range: {start} - {end}"
-        )
+        if verbose:
+            logger.info(
+                f"Determining approximate start/end dates for "
+                f"range: {start} - {end}"
+            )
         # Overshoot on both sides, then fix after data is loaded
         date_start = marstime_to_datetime(start) - dt.timedelta(days=2)
         date_end = marstime_to_datetime(end) + dt.timedelta(days=2)
         data = self.load_date_range(
-            date_start, date_end, ddr, add_cols=add_cols, **kwargs
+            date_start, date_end, ddr, add_cols=add_cols, verbose=verbose, **kwargs
         )
         # This reduction will need to be more complicated for multi-MY searches
         if ddr == "DDR1":
@@ -284,11 +345,12 @@ class L2Loader:
             ]
         return data
 
-    def merge_ddrs(self, ddr2_df, ddr1_df):
-        logger.info(
-            f"Merging DDR1 (shape: {ddr1_df.shape}) profile metadata to "
-            f"DDR2 profiles: (shape: {ddr2_df.shape})"
-        )
+    def merge_ddrs(self, ddr2_df, ddr1_df, verbose=False):
+        if verbose:
+            logger.info(
+                f"Merging DDR1 (shape: {ddr1_df.shape}) profile metadata to "
+                f"DDR2 profiles: (shape: {ddr2_df.shape})"
+            )
         merged = pd.merge(
             ddr2_df,
             ddr1_df,
@@ -296,5 +358,6 @@ class L2Loader:
             how="outer",
             suffixes=("", "_DDR1"),
         )
-        logger.info(f"Merged: {merged.shape}:\n{merged.head()}")
+        if verbose:
+            logger.info(f"Merged: {merged.shape}:\n{merged.head()}")
         return merged
