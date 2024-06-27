@@ -237,9 +237,15 @@ class BinConfig():
         return data
 
 class ConfigParser:
-    def __init__(self, filter_config: FilterConfig = None, bin_config: BinConfig = None) -> None:
+    def __init__(
+            self,
+            filter_config: FilterConfig = None,
+            bin_config: BinConfig = None,
+            ddr2_fields: list = None,
+        ) -> None:
         self.filter_config = filter_config
         self.bin_config = bin_config
+        self.ddr2_fields = ddr2_fields
 
     def check_dt_type_and_convert(self, timeval):
         if isinstance(timeval, dt.datetime):
@@ -248,38 +254,6 @@ class ConfigParser:
             return dt.datetime.from_isoformat(timeval)
         else:
             raise TypeError(f"Can't convert {timeval} (type {type(timeval)}) to datetime.")
-
-    def parse_yaml(self, yaml_dict: dict):
-        for config_type, config_data in yaml_dict.items():
-            for key, val in config_data.items():
-                if type(val) is dict:
-                    if "Step" in val.keys():
-                        yaml_dict[config_type][key] = (
-                            val["Start"],
-                            val["Stop"],
-                            val["Step"],
-                        )
-                    else:
-                        yaml_dict[config_type][key] = (val["Start"], val["Stop"])
-            if "dt" in config_data.keys():
-                if type(config_data["dt"]) is str:
-                    yaml_dict[config_type]["dt"] = dt.datetime.fromisoformat(
-                        config_data["dt"]
-                    )
-                elif type(config_data["dt"]) in [tuple, list]:
-                    yaml_dict[config_type]["dt"] = (
-                        dt.datetime.fromisoformat(config_data["dt"][x])
-                        for x in config_data["dt"]
-                    )
-            if "MY" and "L_s" in config_data.keys():
-                if type(config_data["L_s"]) in [tuple, list]:
-                    yaml_dict[config_type]["MarsTime"] = tuple(
-                        MarsTime.from_solar_longitude(config_data["MY"], x)
-                        for x in config_data["L_s"]
-                    )
-            if "MarsTime" in config_data.keys():
-                yaml_dict[config_type]["Mars"]
-        return yaml_dict
 
     @classmethod
     def from_yaml(cls, path):
@@ -292,13 +266,22 @@ class ConfigParser:
             bin_config = BinConfig(config["bin"])
         else:
             bin_config = None
+        if "ddr2_fields" in config.keys():
+            ddr2_fields = config[ddr2_fields]
+        else:
+            ddr2_fields = None
         #config = self.parse_yaml(config)
-        return cls(filter_config = filter_config, bin_config=bin_config)
+        return cls(
+            filter_config = filter_config,
+            bin_config=bin_config,
+            ddr2_fields=ddr2_fields
+        )
 
 
     def __str__(self) -> str:
         config_dict = {
             "Filter": self.filter_config,
-            "Bin": self.bin_config
+            "Bin": self.bin_config,
+            "DDR2_fields": self.ddr2_fields
         }
         return config_dict.__repr__()

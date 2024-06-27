@@ -22,3 +22,9 @@ bin:
     Stop: 180
     Step: 15
   Day: True
+  Alt:
+    Start: 0
+    Stop: 110
+    Step: 5
+  
+ddr2_fields: ["Pres", "T", "T_err", "H2O_ice", "H2O_ice_err", "Dust", "Dust_err"]
