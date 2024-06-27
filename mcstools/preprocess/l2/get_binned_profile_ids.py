@@ -30,7 +30,8 @@ def main(config_file, pds, mcs_data_path, ddr1_profiles_only, output_path):
         ddr2 = loader.load(ddr="DDR2", profiles=ddr1["Profile_identifier"].unique(), verbose=True)
         ddr2.dropna(
             subset=[x for x in filters.ddr2_fields if x not in ["Pres", "level"]],
-            inplace=True
+            inplace=True, 
+            how="all",
         )
         merged =loader.merge_ddrs(ddr2, ddr1, verbose=True)
         merged = filters.bin_config.create_bin_columns(merged)
