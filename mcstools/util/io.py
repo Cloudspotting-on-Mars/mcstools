@@ -1,4 +1,5 @@
 import click
+import os
 import yaml
 
 def load_yaml(path):
@@ -21,3 +22,6 @@ def mcs_data_loader_click_options(f):
         help="Path to MCS data path [if PDS=False and no path provided, will setup via .env]"
     )(f)
     return f
+
+def makedirs(output_path):
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)

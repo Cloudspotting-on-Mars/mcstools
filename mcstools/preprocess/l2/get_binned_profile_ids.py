@@ -3,7 +3,7 @@ import click
 from mcstools.loader import L2Loader
 from mcstools.preprocess.l2.filter_and_bin import ConfigParser
 from mcstools.util.log import logger, setup_logging
-from mcstools.util.io import mcs_data_loader_click_options, make_dirs
+from mcstools.util.io import mcs_data_loader_click_options, makedirs
 
 @click.command()
 @click.argument("config-file")
