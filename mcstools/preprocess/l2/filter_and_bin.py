@@ -169,7 +169,7 @@ class FilterConfig():
 class BinConfig():
     # Valid keys should be any DDR1 column + addable columns
     # Lon should be cyclic
-    float_keys = ["L_s", "Profile_lat", "Profile_lon"]
+    float_keys = ["L_s", "Profile_lat", "Profile_lon", "Alt"]
     cyclic_keys = ["LTST"]
     flag_keys = ["Obs_qual", "Day"]
 
@@ -187,6 +187,8 @@ class BinConfig():
     def _add_missing_columns(self, data):
         if "Day" in self.bin_dict.keys() and "Day" not in data.columns:
             return add_day_column(data)
+        else:
+            return data
         
     def make_bins(self, bin_setup: dict) -> np.array:
         return np.arange(
@@ -233,8 +235,10 @@ class BinConfig():
                 return NotImplementedError()
             else:
                 raise KeyError(f"Bin field {bin_col} not recognized.")
-            
         return data
+    
+    def __repr__(self):
+        return self.bin_dict.__repr__()
 
 class ConfigParser:
     def __init__(
@@ -267,7 +271,7 @@ class ConfigParser:
         else:
             bin_config = None
         if "ddr2_fields" in config.keys():
-            ddr2_fields = config[ddr2_fields]
+            ddr2_fields = config["ddr2_fields"]
         else:
             ddr2_fields = None
         #config = self.parse_yaml(config)
@@ -278,7 +282,7 @@ class ConfigParser:
         )
 
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         config_dict = {
             "Filter": self.filter_config,
             "Bin": self.bin_config,
