@@ -22,7 +22,7 @@ def main(config_file, pds, mcs_data_path, output_path):
         as_index=True
     )["Profile_identifier"].aggregate(lambda x: list(x.unique()) if len(x)>0 else [])
     if output_path:
-        make_dirs(output_path)
+        makedirs(output_path)
         logger.info(f"Saving to {output_path}:\n{ddr1_binned_profiles}")
         ddr1_binned_profiles.to_csv(output_path, index=True)
 
