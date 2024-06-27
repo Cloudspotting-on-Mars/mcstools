@@ -6,11 +6,12 @@ from pathlib import Path
 import coloredlogs
 import yaml
 
+
 logger = logging.getLogger(__name__)
 
-
 def setup_logging(
-    logging_config: str = "logging.yml", default_level: int = logging.INFO
+    logging_config: str = "logging.yml", default_level: int = logging.INFO,
+    requests_level=logging.WARNING
 ):
     """
     Setup logging configuration
@@ -55,10 +56,14 @@ def setup_logging(
             level=config["root"]["level"],
             logger=logging.getLogger("__main__"),
         )
-
     # from default
     else:
         logging.basicConfig(level=default_level)
         config_method = "default_level"
         coloredlogs.install(level="DEBUG")
+    # URLLIB3 generates a lot of DEBUG logs when reading from PDS
+    logging.getLogger("requests").setLevel(requests_level)
+    logging.getLogger("urllib3").setLevel(requests_level)
+    logging.getLogger("charset_normalizer").setLevel(requests_level)
+    # Log setup
     logger.info(f"Logging set from {config_method}")

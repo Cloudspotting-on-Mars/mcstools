@@ -344,6 +344,30 @@ class L2Loader:
                 & (data["L_s"] < end.solar_longitude)
             ]
         return data
+    
+    def load_from_filter_config(self, filter_config, add_cols: list = None,
+            verbose: bool = False, **kwargs,):
+        if "dt" in filter_config.filter_dict.keys():
+            key = "dt"
+            load_fnc = self.load_date_range
+        elif "MarsTime" in filter_config.filter_dict.keys():
+            key = "MarsTime"
+            load_fnc = self.load_ls_range
+        start = filter_config.filter_dict[key]["Start"]
+        stop = filter_config.filter_dict[key]["Stop"]
+        if add_cols:
+            add_cols = add_cols+filter_config.add_cols
+            add_cols = list(set(add_cols))
+            print(add_cols)
+        data = load_fnc(
+            start,
+            stop,
+            "DDR1",
+            add_cols=add_cols,
+            verbose=verbose,
+            **kwargs
+        )
+        return filter_config.filter_data(data)
 
     def merge_ddrs(self, ddr2_df, ddr1_df, verbose=False):
         if verbose:

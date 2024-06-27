@@ -12,6 +12,7 @@ from mcstools.util.time import (
     PDS_DATE_FMT,
     add_datetime_column,
     add_marsyear_column,
+    add_day_column,
 )
 
 
@@ -363,4 +364,6 @@ class L2Reader(Reader):
                 df = add_datetime_column(df)
             if "MY" in add_cols:
                 df = add_marsyear_column(df)
+            if "Day" in add_cols:
+                df = add_day_column(df)
         return df
