@@ -76,3 +76,8 @@ def sphere_coords():
 @pytest.fixture()
 def cart_coords():
     return np.array([2 * np.sqrt(2), 2 * np.sqrt(2), 4 * np.sqrt(3)])
+
+@pytest.fixture()
+def l1b_data_sample(l1b_reader):
+    data = l1b_reader.read("test/top.L1B")
+    return data
