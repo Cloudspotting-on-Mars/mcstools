@@ -53,11 +53,58 @@ class L1BLoader:
         return df
 
     def load_date_range(self, start_time, end_time, add_cols=["dt"], **kwargs):
+        if add_cols is None:
+            add_cols = ["dt"]
+        elif "dt" not in add_cols:
+            add_cols.append("dt")
         times = check_and_convert_start_end_times(start_time, end_time)
         logger.info(f"Loading L1B data from {times[0]} - {times[1]}")
         files = self.filename_builder.make_filenames_from_daterange(*times)
         data = self.load(files, add_cols=add_cols, **kwargs)
         data = data[(data["dt"] >= times[0]) & (data["dt"] < times[1])]
+        return data
+    
+    def load_ls_range(
+        self,
+        start: MarsTime,
+        end: MarsTime,
+        add_cols: list = None,
+        verbose=False,
+        **kwargs,
+    ) -> pd.DataFrame:
+        """
+        Load L2 data within Ls range of a given Mars Year
+
+        Parameters
+        ----------
+        start/end: beginning/end of MY/Ls range
+        files: path/url to file(s)
+        profiles: specific profiles to reduce to
+        ddr: data record [DDR1, DDR2, DDR3]
+        add_cols: additional columns to generate and add ["dt"]
+        dask: option to load via dask delay
+        verbose: output log details
+
+        Returns
+        -------
+        _: loaded L2 data
+        """
+        if verbose:
+            logger.info(
+                f"Determining approximate start/end dates for "
+                f"range: {start} - {end}"
+            )
+        # Overshoot on both sides, then fix after data is loaded
+        date_start = marstime_to_datetime(start) - dt.timedelta(days=2)
+        date_end = marstime_to_datetime(end) + dt.timedelta(days=2)
+        data = self.load_date_range(
+            date_start, date_end, add_cols=add_cols, **kwargs
+        )
+        # This reduction will need to be more complicated for multi-MY searches
+        data = data[
+            (data["L_sub_s"] >= start.solar_longitude)
+            & (data["L_sub_s"] < end.solar_longitude)
+        ]
         return data
 
     def load_from_filestr(self, filestr, **kwargs):

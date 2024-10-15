@@ -65,6 +65,7 @@ class L1BStandardInTrack:
         gqual=[0, 5, 6],
         rolling=[0],
         moving=[0],
+        directions=None,
         include_aft=False,
     ):
         self.limb_scene_alt_range = limb_scene_alt_range
@@ -73,8 +74,11 @@ class L1BStandardInTrack:
         self.gqual = gqual
         self.rolling = rolling
         self.moving = moving
-        self.directions = ["in"]
-        if include_aft:
+        if directions is None:
+            self.directions = ["in"]
+        else:
+            self.directions = directions
+        if include_aft and "aft" not in self.directions:
             self.directions.append("aft")
 
     def preprocess(self, df, average_sequences=True):

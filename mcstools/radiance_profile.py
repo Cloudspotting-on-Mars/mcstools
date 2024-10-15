@@ -42,5 +42,6 @@ class RadianceProfile:
                 raise ValueError("dt column not found in L1B row")
         return RadianceProfile(channel, profile, altitudes=altitudes, utc=utc)
 
+
     def __str__(self):
         return f"Channel {self.channel}. Profile:\n{self.profile}"
