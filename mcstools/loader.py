@@ -11,7 +11,7 @@ from mcstools.data_path_handler import FilenameBuilder
 from mcstools.reader import L1BReader, L2Reader
 from mcstools.util.log import logger
 from mcstools.util.time import check_and_convert_start_end_times
-
+from mcstools.preprocess.l2.filter_and_bin import filter_ddr1_df_from_config
 
 class L1BLoader:
     """
@@ -391,6 +391,26 @@ class L2Loader:
                 & (data["L_s"] < end.solar_longitude)
             ]
         return data
+    
+    def load_from_config_dict(self, config_dict, ddr="DDR1", verbose=False):
+        if "dt" in config_dict.keys() and "Ls" not in config_dict.keys():
+            data = self.load_date_range(
+                *config_dict["dt"], ddr="DDR1", add_cols=["dt"], verbose=verbose
+            )
+        else:
+            data = self.load_ls_range(
+                config_dict["Marstime"][0],
+                config_dict["Marstime"][1],
+                ddr="DDR1",
+                add_cols=["MY"],
+                verbose=verbose
+            )
+            del config_dict["Marstime"]
+        data = filter_ddr1_df_from_config(data, config_dict)
+        if ddr == "DDR2":
+            ddr2 = self.load("DDR2", profiles=data["Profile_identifier"])
+            data = self.merge_ddrs(ddr2, data, verbose=verbose)
+        return data 
 
     def merge_ddrs(self, ddr2_df, ddr1_df, verbose=False):
         if verbose:
