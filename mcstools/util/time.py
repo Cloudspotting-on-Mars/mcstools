@@ -119,6 +119,9 @@ def ltst(lon, subsolar_lon):
         delta -= 360
     return (delta + 180) * 24 / 360
 
+
 def add_day_column(df: pd.DataFrame, dawn=6, dusk=18, day_col_name="Day"):
-    df[day_col_name] = df["LTST"].apply(lambda x: 1 if (x>=dawn/24 and x<dusk/24) else 0)
+    df[day_col_name] = df["LTST"].apply(
+        lambda x: 1 if (x >= dawn / 24 and x < dusk / 24) else 0
+    )
     return df

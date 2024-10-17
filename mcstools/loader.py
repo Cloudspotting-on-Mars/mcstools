@@ -149,7 +149,7 @@ class L2Loader:
         """
         # Setup files to load if only profiles given
         if files is None:
-            if isinstance(profiles,pd.Series):
+            if isinstance(profiles, pd.Series):
                 profiles = sorted(profiles.to_list())
             # Get files from profile names
             filestrs = sorted(
@@ -344,9 +344,14 @@ class L2Loader:
                 & (data["L_s"] < end.solar_longitude)
             ]
         return data
-    
-    def load_from_filter_config(self, filter_config, add_cols: list = None,
-            verbose: bool = False, **kwargs,):
+
+    def load_from_filter_config(
+        self,
+        filter_config,
+        add_cols: list = None,
+        verbose: bool = False,
+        **kwargs,
+    ):
         if "dt" in filter_config.filter_dict.keys():
             key = "dt"
             load_fnc = self.load_date_range
@@ -356,16 +361,11 @@ class L2Loader:
         start = filter_config.filter_dict[key]["Start"]
         stop = filter_config.filter_dict[key]["Stop"]
         if add_cols:
-            add_cols = add_cols+filter_config.add_cols
+            add_cols = add_cols + filter_config.add_cols
             add_cols = list(set(add_cols))
             print(add_cols)
         data = load_fnc(
-            start,
-            stop,
-            "DDR1",
-            add_cols=add_cols,
-            verbose=verbose,
-            **kwargs
+            start, stop, "DDR1", add_cols=add_cols, verbose=verbose, **kwargs
         )
         return filter_config.filter_data(data)
 

@@ -3,7 +3,6 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 import xarray as xr
-
 from mars_time import MarsTime, datetime_to_marstime, marstime_to_datetime
 
 from mcstools.util.io import load_yaml
@@ -27,14 +26,6 @@ bin_config_example = {
     "Profile_lon": (-180, 180, 15),
     "LTST": (0, 1, 6 / 24.0),
 }
-
-
-
-
-#def find_bin_edges_from_point(loc, bin_setup):
-#    bins = make_bins(bin_setup)
-#    start_bin = bins[np.digitize(loc, bins) - 1]
-#    return (start_bin, start_bin + bin_setup[2])
 
 
 def generate_filter_config_from_location_and_bins(
@@ -77,10 +68,8 @@ def generate_filter_config_from_location_and_bins(
         if key in ["L_s", "dt"]:
             continue
         else:
-            filter_config[key] = find_bin_edges_from_point(value, bin_config[key])
+            filter_config[key] = (bin_config[key]["Start"], bin_config[key]["Stop"])
     return filter_config
-
-
 
 
 def convert_binned_df_to_xarray(
@@ -92,39 +81,42 @@ def convert_binned_df_to_xarray(
     binned_xr = binned_grouped.to_xarray()
     return binned_xr
 
-class FilterConfig():
+
+class FilterConfig:
     """
     Class for filtering DDR1 data.
     """
+
     def __init__(self, filter_dict: dict):
         self.filter_dict = self._verify_filter(filter_dict)
         self._parse_filter_dict(self.filter_dict)
         self.add_cols = ["dt"]
         if "Day" in self.filter_dict.keys():
             self.add_cols.append("Day")
-    
+
     def _verify_filter(self, filter_dict: dict):
         # Valid keys should be any DDR1 column + addable columns
         if "dt" in filter_dict.keys() and "MarsTime" in filter_dict.keys():
             raise NotImplementedError()
-            #logger.warning("Both datetime and MarsTime filters provided, will filter by both windows")
         return filter_dict
-    
+
     def _parse_filter_dict(self, filter_dict):
         # For time filtering, expect start/stop
         if "dt" in filter_dict.keys():
             for ss in ["Start", "Stop"]:
-                filter_dict["dt"][ss] = self.check_dt_type_and_convert(filter_dict["dt"][ss])
+                filter_dict["dt"][ss] = self.check_dt_type_and_convert(
+                    filter_dict["dt"][ss]
+                )
         if "MarsTime" in filter_dict.keys():
             for ss in ["Start", "Stop"]:
                 if "Ls" in filter_dict["MarsTime"][ss].keys():
                     filter_dict["MarsTime"][ss] = MarsTime.from_solar_longitude(
                         filter_dict["MarsTime"][ss]["MY"],
-                        filter_dict["MarsTime"][ss]["Ls"]
+                        filter_dict["MarsTime"][ss]["Ls"],
                     )
                 elif "Sol" in filter_dict["MarsTime"][ss].keys():
                     raise NotImplementedError()
-                
+
     def filter_data(self, data: pd.DataFrame):
         """
         Filter DDR1 data from a config dictionary, where config gives:
@@ -152,7 +144,9 @@ class FilterConfig():
                 data = data[data[field].isin(vals)]
             # Select rows within range for tuple
             elif isinstance(vals, dict):
-                logger.info(f"Filtering {field} to within {vals['Start']}-{vals['Stop']}.")
+                logger.info(
+                    f"Filtering {field} to within {vals['Start']}-{vals['Stop']}."
+                )
                 data = data[data[field].between(*vals)]
             else:
                 raise KeyError(f"Can't parse field: {field} for filtering.")
@@ -160,13 +154,12 @@ class FilterConfig():
                 logger.warning("No profiles left after filtering")
                 break
         return data
-            
-                
+
     def __repr__(self):
         return self.filter_dict.__repr__()
-        
 
-class BinConfig():
+
+class BinConfig:
     # Valid keys should be any DDR1 column + addable columns
     # Lon should be cyclic
     float_keys = ["L_s", "Profile_lat", "Profile_lon", "Alt"]
@@ -181,20 +174,20 @@ class BinConfig():
             if key in self.float_keys:
                 for sss in ["Start", "Stop", "Step"]:
                     if sss not in bin_dict[key].keys():
-                        raise ValueError(f"{bin_dict[key]} does not have valid bin parameters")
+                        raise ValueError(
+                            f"{bin_dict[key]} does not have valid bin parameters"
+                        )
         return bin_dict
-    
+
     def _add_missing_columns(self, data):
         if "Day" in self.bin_dict.keys() and "Day" not in data.columns:
             return add_day_column(data)
         else:
             return data
-        
+
     def make_bins(self, bin_setup: dict) -> np.array:
         return np.arange(
-            bin_setup["Start"],
-            bin_setup["Stop"] + bin_setup["Step"],
-            bin_setup["Step"]
+            bin_setup["Start"], bin_setup["Stop"] + bin_setup["Step"], bin_setup["Step"]
         )
 
     def create_bin_columns(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -224,10 +217,8 @@ class BinConfig():
                 bins = self.make_bins(bin_params)
                 mid_points = (bins[1:] + bins[:-1]) / 2  # Find bin midpoints
                 # create new column of midpoint of associated bin
-                new_col = f"{bin_col}_mid" 
-                data[new_col] = pd.cut(
-                    data[bin_col], bins=bins, labels=mid_points
-                )
+                new_col = f"{bin_col}_mid"
+                data[new_col] = pd.cut(data[bin_col], bins=bins, labels=mid_points)
                 self.binned_columns.append(new_col)
             elif bin_col in self.flag_keys:
                 self.binned_columns.append(bin_col)
@@ -236,17 +227,18 @@ class BinConfig():
             else:
                 raise KeyError(f"Bin field {bin_col} not recognized.")
         return data
-    
+
     def __repr__(self):
         return self.bin_dict.__repr__()
 
+
 class ConfigParser:
     def __init__(
-            self,
-            filter_config: FilterConfig = None,
-            bin_config: BinConfig = None,
-            ddr2_fields: list = None,
-        ) -> None:
+        self,
+        filter_config: FilterConfig = None,
+        bin_config: BinConfig = None,
+        ddr2_fields: list = None,
+    ) -> None:
         self.filter_config = filter_config
         self.bin_config = bin_config
         self.ddr2_fields = ddr2_fields
@@ -257,7 +249,9 @@ class ConfigParser:
         elif isinstance(timeval, str):
             return dt.datetime.from_isoformat(timeval)
         else:
-            raise TypeError(f"Can't convert {timeval} (type {type(timeval)}) to datetime.")
+            raise TypeError(
+                f"Can't convert {timeval} (type {type(timeval)}) to datetime."
+            )
 
     @classmethod
     def from_yaml(cls, path):
@@ -274,18 +268,15 @@ class ConfigParser:
             ddr2_fields = config["ddr2_fields"]
         else:
             ddr2_fields = None
-        #config = self.parse_yaml(config)
+        # config = self.parse_yaml(config)
         return cls(
-            filter_config = filter_config,
-            bin_config=bin_config,
-            ddr2_fields=ddr2_fields
+            filter_config=filter_config, bin_config=bin_config, ddr2_fields=ddr2_fields
         )
-
 
     def __repr__(self) -> str:
         config_dict = {
             "Filter": self.filter_config,
             "Bin": self.bin_config,
-            "DDR2_fields": self.ddr2_fields
+            "DDR2_fields": self.ddr2_fields,
         }
         return config_dict.__repr__()

@@ -11,8 +11,8 @@ from mcstools.util.time import (
     GDS_DATE_FMT,
     PDS_DATE_FMT,
     add_datetime_column,
-    add_marsyear_column,
     add_day_column,
+    add_marsyear_column,
 )
 
 

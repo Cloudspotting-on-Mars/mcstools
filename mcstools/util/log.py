@@ -6,12 +6,13 @@ from pathlib import Path
 import coloredlogs
 import yaml
 
-
 logger = logging.getLogger(__name__)
 
+
 def setup_logging(
-    logging_config: str = "logging.yml", default_level: int = logging.INFO,
-    requests_level=logging.WARNING
+    logging_config: str = "logging.yml",
+    default_level: int = logging.INFO,
+    requests_level=logging.WARNING,
 ):
     """
     Setup logging configuration
