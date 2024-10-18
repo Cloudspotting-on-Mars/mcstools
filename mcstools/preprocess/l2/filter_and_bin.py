@@ -181,11 +181,17 @@ class ConfigParser:
                         for x in config_data["dt"]
                     )
             if "MY" and "L_s" in config_data.keys():
+                if not isinstance(config_data["MY"], list):
+                    config_data["MY"] = [config_data["MY"]]
                 if type(config_data["L_s"]) in [tuple, list]:
-                    yaml_dict[config_type]["Marstime"] = tuple(
-                        MarsTime.from_solar_longitude(config_data["MY"], x)
-                        for x in config_data["L_s"]
-                    )
+                    yaml_dict[config_type]["Marstime"] = []  # initialize list of start/stops
+                    for my in config_data["MY"]:
+                        yaml_dict[config_type]["Marstime"].append(
+                            tuple(
+                                MarsTime.from_solar_longitude(my, x)
+                                for x in config_data["L_s"]
+                            )
+                        )
         return yaml_dict
 
     def load_config(self, path):

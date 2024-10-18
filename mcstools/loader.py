@@ -393,18 +393,23 @@ class L2Loader:
         return data
     
     def load_from_config_dict(self, config_dict, ddr="DDR1", verbose=False):
-        if "dt" in config_dict.keys() and "Ls" not in config_dict.keys():
+        if "dt" in config_dict.keys() and "MY" not in config_dict.keys():
             data = self.load_date_range(
                 *config_dict["dt"], ddr="DDR1", add_cols=["dt"], verbose=verbose
             )
         else:
-            data = self.load_ls_range(
-                config_dict["Marstime"][0],
-                config_dict["Marstime"][1],
-                ddr="DDR1",
-                add_cols=["MY"],
-                verbose=verbose
-            )
+            data_pieces = []
+            for myls_range in config_dict["Marstime"]:
+                data_pieces.append(
+                    self.load_ls_range(
+                        myls_range[0],
+                        myls_range[1],
+                        ddr="DDR1",
+                        add_cols=["MY"],
+                        verbose=verbose
+                    )
+                )
+            data = pd.concat(data_pieces, ignore_index=True)
             del config_dict["Marstime"]
         data = filter_ddr1_df_from_config(data, config_dict)
         if ddr == "DDR2":
