@@ -319,7 +319,7 @@ class L1BDataPipeline(DataPipeline):
         if not pass_flag_values:
             cols = [x for x in cols if x not in self.l1bagg.pass_columns]
         if len(df.index) == 0:
-            return pd.DataFrame(columns=cols)
+            return pd.DataFrame(columns=cols+["sequence_label"])
         grouped = df.groupby("sequence_label")
         grouped_mean = grouped[cols].aggregate(
             self.l1bagg.apply_mean
