@@ -213,8 +213,9 @@ class L2Loader:
                 df = df[df["Profile_identifier"].isin(profiles)]
         # No files, make empty DF
         elif len(files) == 0:
+            empty_df_cols = self.reader.data_records[ddr]["columns"]
             if add_cols is not None:
-                empty_df_cols = self.reader.data_records[ddr]["columns"] + add_cols
+                empty_df_cols.append(add_cols)
             df = pd.DataFrame(columns=empty_df_cols)
         # Load multiple files
         else:
