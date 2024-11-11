@@ -136,3 +136,6 @@ scratch/
 
 # data
 data/
+
+# MAC
+.DS_Store

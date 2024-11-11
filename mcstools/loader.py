@@ -8,6 +8,7 @@ from dask import delayed
 from mars_time import MarsTime, marstime_to_datetime
 
 from mcstools.data_path_handler import FilenameBuilder
+from mcstools.preprocess.l2.filter_and_bin import filter_ddr1_df_from_config
 from mcstools.reader import L1BReader, L2Reader
 from mcstools.util.log import logger
 from mcstools.util.time import check_and_convert_start_end_times
@@ -63,7 +64,7 @@ class L1BLoader:
         data = self.load(files, add_cols=add_cols, **kwargs)
         data = data[(data["dt"] >= times[0]) & (data["dt"] < times[1])]
         return data
-    
+
     def load_ls_range(
         self,
         start: MarsTime,
@@ -97,9 +98,7 @@ class L1BLoader:
         # Overshoot on both sides, then fix after data is loaded
         date_start = marstime_to_datetime(start) - dt.timedelta(days=2)
         date_end = marstime_to_datetime(end) + dt.timedelta(days=2)
-        data = self.load_date_range(
-            date_start, date_end, add_cols=add_cols, **kwargs
-        )
+        data = self.load_date_range(date_start, date_end, add_cols=add_cols, **kwargs)
         # This reduction will need to be more complicated for multi-MY searches
         data = data[
             (data["L_sub_s"] >= start.solar_longitude)
@@ -213,8 +212,9 @@ class L2Loader:
                 df = df[df["Profile_identifier"].isin(profiles)]
         # No files, make empty DF
         elif len(files) == 0:
+            empty_df_cols = self.reader.data_records[ddr]["columns"]
             if add_cols is not None:
-                empty_df_cols = self.reader.data_records[ddr]["columns"] + add_cols
+                empty_df_cols.append(add_cols)
             df = pd.DataFrame(columns=empty_df_cols)
         # Load multiple files
         else:
@@ -390,6 +390,31 @@ class L2Loader:
                 (data["L_s"] >= start.solar_longitude)
                 & (data["L_s"] < end.solar_longitude)
             ]
+        return data
+
+    def load_from_config_dict(self, config_dict, ddr="DDR1", verbose=False):
+        if "dt" in config_dict.keys() and "MY" not in config_dict.keys():
+            data = self.load_date_range(
+                *config_dict["dt"], ddr="DDR1", add_cols=["dt"], verbose=verbose
+            )
+        else:
+            data_pieces = []
+            for myls_range in config_dict["Marstime"]:
+                data_pieces.append(
+                    self.load_ls_range(
+                        myls_range[0],
+                        myls_range[1],
+                        ddr="DDR1",
+                        add_cols=["MY"],
+                        verbose=verbose,
+                    )
+                )
+            data = pd.concat(data_pieces, ignore_index=True)
+            del config_dict["Marstime"]
+        data = filter_ddr1_df_from_config(data, config_dict)
+        if ddr == "DDR2":
+            ddr2 = self.load("DDR2", profiles=data["Profile_identifier"])
+            data = self.merge_ddrs(ddr2, data, verbose=verbose)
         return data
 
     def merge_ddrs(self, ddr2_df, ddr1_df, verbose=False):
