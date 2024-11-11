@@ -8,7 +8,11 @@ DETECTOR_POSITIONS = DetectorPositions()
 
 class RadianceProfile:
     def __init__(
-        self, channel: str, radiance_detector_profile: pd.Series, altitudes=None, utc=None
+        self,
+        channel: str,
+        radiance_detector_profile: pd.Series,
+        altitudes=None,
+        utc=None,
     ):
         self.channel = channel
         self.profile = radiance_detector_profile
@@ -37,11 +41,12 @@ class RadianceProfile:
             )
         if include_utc:
             if "dt" in row.index:
-                utc = row['dt']
+                utc = row["dt"]
             else:
                 raise ValueError("dt column not found in L1B row")
+        else:
+            utc = None
         return RadianceProfile(channel, profile, altitudes=altitudes, utc=utc)
-
 
     def __str__(self):
         return f"Channel {self.channel}. Profile:\n{self.profile}"

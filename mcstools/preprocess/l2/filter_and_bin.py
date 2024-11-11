@@ -158,7 +158,7 @@ class ConfigParser:
     def __init__(self) -> None:
         pass
 
-    def parse_yaml(self, yaml_dict: dict):
+    def parse_yaml(self, yaml_dict: dict):  # noqa: C901
         for config_type, config_data in yaml_dict.items():
             for key, val in config_data.items():
                 if type(val) is dict:
@@ -180,11 +180,17 @@ class ConfigParser:
                         dt.datetime.fromisoformat(config_data["dt"][x])
                         for x in config_data["dt"]
                     )
-            if "MY" and "L_s" in config_data.keys():
+                else:
+                    raise TypeError(
+                        f"Config dt type {type(config_data['dt'])} not recognized"
+                    )
+            elif "MY" and "L_s" in config_data.keys():
                 if not isinstance(config_data["MY"], list):
                     config_data["MY"] = [config_data["MY"]]
-                if type(config_data["L_s"]) in [tuple, list]:
-                    yaml_dict[config_type]["Marstime"] = []  # initialize list of start/stops
+                if isinstance(config_data["L_s"], (tuple, list)):
+                    yaml_dict[config_type][
+                        "Marstime"
+                    ] = []  # initialize list of start/stops
                     for my in config_data["MY"]:
                         yaml_dict[config_type]["Marstime"].append(
                             tuple(
@@ -192,6 +198,8 @@ class ConfigParser:
                                 for x in config_data["L_s"]
                             )
                         )
+            else:
+                raise ValueError(f"Missing time component: {yaml_dict}")
         return yaml_dict
 
     def load_config(self, path):
