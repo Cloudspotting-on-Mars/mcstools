@@ -7,6 +7,8 @@ import panel as pn
 from mcstools.loader import L1BLoader
 from mcstools.preprocess.l1b import L1BStandardInTrack
 from mcstools.reader import L1BReader
+from mcstools.util.io import mcs_data_loader_click_options
+from mcstools.util.log import setup_logging
 
 
 def plot(data):
@@ -74,8 +76,9 @@ def all_plots(df_ave):
 
 
 @click.command()
+@mcs_data_loader_click_options
 @click.option("--filestr", default="071214040000")
-def main(filestr) -> None:
+def main(pds, mcs_data_path, filestr) -> None:
     """
     Plot single 4-hour file radiance file
     """
@@ -83,7 +86,7 @@ def main(filestr) -> None:
 
     @pn.depends(FILESTR)
     def panel_main(f):
-        loader = L1BLoader(pds=True)  # initialize loader
+        loader = L1BLoader(mcs_data_path=mcs_data_path, pds=pds)  # initialize loader
         path = loader.filename_builder.make_filename_from_filestr(
             f
         )  # make single file path/url
@@ -103,4 +106,5 @@ def main(filestr) -> None:
 
 
 if __name__ == "__main__":
+    setup_logging()
     main()
