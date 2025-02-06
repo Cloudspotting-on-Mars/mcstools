@@ -61,9 +61,10 @@ class L1BReader(Reader, L1BFile):
                 **kwargs,
             )
         except pd.errors.ParserError as e:
-            logger.error(e)
             logger.error(
-                f"Unable to load {filename}, number of columns does not match expected"
+                f"Unable to load {filename}, "
+                "number of columns does not match expected.\n"
+                f"Pandas parser error: {e}"
             )
             df = pd.DataFrame(columns=usecols)
         header_vals = self.grab_header_values(filename, url=self.pds)
