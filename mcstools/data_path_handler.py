@@ -54,7 +54,7 @@ class FilenameBuilder:
         )  # convert times to 4-hour format
         end = round_to_x_hour(end, hours=4, force_up=True)
         datetimes = pd.date_range(
-            start, end, freq="4H", inclusive="left"
+            start, end, freq="4h", inclusive="left"
         )  # generate file datetimes (4-hour fmt)
         filestrs = [self.handler.convert_dt_to_filestr(d) for d in datetimes]
         return filestrs
