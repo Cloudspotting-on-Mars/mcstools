@@ -78,7 +78,13 @@ def all_plots(df_ave):
 @click.command()
 @mcs_data_loader_click_options
 @click.option("--filestr", default="071214040000")
-def main(pds, mcs_data_path, filestr) -> None:
+@click.option(
+    "--direction",
+    type=click.Choice(["in", "aft", "right", "left"]),
+    default="in",
+    help="Viewing direction to plot",
+)
+def main(pds, mcs_data_path, filestr, direction) -> None:
     """
     Plot single 4-hour file radiance file
     """
@@ -91,7 +97,7 @@ def main(pds, mcs_data_path, filestr) -> None:
             f
         )  # make single file path/url
         df = loader.load([path])  # load single 4-hour file
-        processer = L1BStandardInTrack(include_aft=True)  # initialize processer
+        processer = L1BStandardInTrack(directions=direction)  # initialize processer
         df = processer.preprocess(df)  # reduce to in-track sequence-averaged data
         df_xr = processer.melt_to_xarray(
             df, include_cols=["Radiance", "Scene_lat", "Scene_lon", "LTST", "L_sub_s"]
