@@ -118,3 +118,10 @@ def ltst(lon, subsolar_lon):
     if delta >= 180:
         delta -= 360
     return (delta + 180) * 24 / 360
+
+def sols_elapsed(time_a, time_b):
+    """
+    Number of sols elapsed from time_a to time_b
+    """
+    days_per_sol = 88775.244/24/3600
+    return (time_a - time_b).total_seconds()/(3600*24)/days_per_sol
