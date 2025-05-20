@@ -43,8 +43,8 @@ class SpectralResponse:
         df = pd.read_fwf(
             self.filepaths["A6"],
             names=[
-                "A6_wl",
-                "A6_R",
+                "wl",
+                "R",
             ],
         )
         return df
@@ -58,11 +58,11 @@ class SpectralResponse:
         responses = {
             f"{c}": achannels[[col for col in achannels.columns if c in col]]
             .dropna()
-            .rename(columns={f"{c}_wl": "wl", f"{c}_R": "R"})
+            .rename(columns={f"{c}_wl": "wl", f"{c}_R": "R"}).set_index("wl")
             for c in ["A1", "A2", "A3", "A4", "A5"]
         }
         a6 = self.read_a6()
-        responses["A6"] = a6
+        responses["A6"] = a6.set_index("wl")
         for b_channel in ["B1", "B2", "B3"]:
             responses[b_channel] = self.read_b(b_channel)
         return responses
