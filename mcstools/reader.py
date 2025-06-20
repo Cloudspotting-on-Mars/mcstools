@@ -315,11 +315,9 @@ class L2Reader(Reader):
         # getting FutureWarning with float here,should make dict of dtypes in mcsfile.py
         df = pd.DataFrame(data=inp_data, columns=columns)
         df = df.astype(self.data_records[record]["dtypes"])
-        df.replace(self.l22dfile.nan_values, np.nan, inplace=True)
-        # convert dtype of columns that should be integers
-        # int_cols = [x for x in df.columns if x in self.dtype_int]
-        # for col in int_cols:
-        #    df[col] = df[col].astype(int)
+        df = df.map(
+            lambda x: x if x not in self.l22dfile.nan_values else np.nan
+        )  # replace(self.l22dfile.nan_values, np.nan).infer_objects(copy=False)
         return df
 
     def add_profile_filename_number(self, df, record):

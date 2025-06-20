@@ -244,9 +244,7 @@ class L2Loader:
                     logger.warning(e)
                 continue
             if profiles is not None:
-                fdf = fdf[
-                    fdf["Profile_identifier"].isin(profiles)
-                ]  # Reduce to subset
+                fdf = fdf[fdf["Profile_identifier"].isin(profiles)]  # Reduce to subset
             pieces.append(fdf)
         if len(pieces) == 0:
             if add_cols is not None:

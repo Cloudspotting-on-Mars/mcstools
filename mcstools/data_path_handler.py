@@ -13,7 +13,9 @@ from mcstools.util.time import GDS_DATE_FMT, check_and_convert_tzinfo, round_to_
 
 
 class FilenameBuilder:
-    def __init__(self, level: str, pds: bool=False, mcs_data_path: str | None=None) -> None:
+    def __init__(
+        self, level: str, pds: bool = False, mcs_data_path: str | None = None
+    ) -> None:
         if pds:
             self.handler = PDSFileFormatter(level)
         else:
