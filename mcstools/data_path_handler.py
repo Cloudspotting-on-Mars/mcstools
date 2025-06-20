@@ -9,7 +9,6 @@ from mcstools.util.log import logger
 from mcstools.util.time import GDS_DATE_FMT, check_and_convert_tzinfo, round_to_x_hour
 
 # TODO: check_file_exists shouldn't be part of path handler, should be part of loader
-# TODO: make_n_before_after(f, before, after)
 
 
 class FilenameBuilder:
@@ -55,11 +54,9 @@ class FilenameBuilder:
             start, hours=4, force_down=True
         )  # convert times to 4-hour format
         end = round_to_x_hour(end, hours=4, force_up=True)
-        print(start, end)
         datetimes = pd.date_range(
             start, end, freq="4h", inclusive="left"
         )  # generate file datetimes (4-hour fmt)
-        print(datetimes)
         filestrs = [self.handler.convert_dt_to_filestr(d) for d in datetimes]
         return filestrs
 
