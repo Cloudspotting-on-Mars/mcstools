@@ -45,7 +45,7 @@ def convert_date_utcs(date: str, utc: str, with_utc_tzinfo=True):
     _: signle datetime value
     """
     fmt = "%d-%b-%Y %H:%M:%S.%f"
-    if type(date) != str or type(utc) != str:
+    if not isinstance(date, str) or not isinstance(utc, str):
         date_str = pd.NaT
     else:
         date_str = date.strip().replace('"', "") + " " + utc.strip().replace('"', "")
@@ -73,7 +73,7 @@ def check_and_convert_start_end_times(start_time, end_time):
                 f"Unrecognized type ({type(t)}) for start/end time, "
                 "must be datetime or isoformat str"
             )
-        elif type(t) == str:
+        elif isinstance(t, str):
             times[i] = dt.datetime.fromisoformat(t)
         times[i] = check_and_convert_tzinfo(times[i])
     return times

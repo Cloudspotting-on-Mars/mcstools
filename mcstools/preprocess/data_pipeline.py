@@ -188,7 +188,6 @@ class L1BAggregator:
 
 
 class L1BDataPipeline(DataPipeline):
-
     """
     Class for filtering and transforming MCS L1B data.
     """
@@ -406,7 +405,7 @@ class L1BDataPipeline(DataPipeline):
                 f"{colname} not in columns."
                 f"First add {colname} with add_direction_column method."
             )
-        if type(directions) == str:
+        if isinstance(directions, str):
             directions = [directions]
         return self.select_flag_values(df, colname, directions)
 

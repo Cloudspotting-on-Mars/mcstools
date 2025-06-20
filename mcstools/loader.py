@@ -183,7 +183,7 @@ class L2Loader:
         """
         # Setup files to load if only profiles given
         if files is None:
-            if type(profiles) == pd.Series:
+            if isinstance(profiles, pd.Series):
                 profiles = sorted(profiles.to_list())
             # Get files from profile names
             filestrs = sorted(
