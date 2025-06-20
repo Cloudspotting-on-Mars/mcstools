@@ -691,7 +691,7 @@ wheels = [
 [[package]]
 name = "mcstools"
 version = "0.5.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "cmcrameri" },
     { name = "coloredlogs" },
