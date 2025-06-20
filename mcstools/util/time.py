@@ -22,7 +22,7 @@ def round_to_x_hour(date, hours=4, force_down=False, force_up=False):
         raise ValueError("Can't force rounding up and down")
     elif force_down:
         up = False  # force always round down to get filename from datetime
-    elif force_up:
+    elif force_up and date != dt_start_of_xhour:
         up = True  # force always round up
     # Round
     if up:

@@ -13,7 +13,7 @@ from mcstools.util.time import GDS_DATE_FMT, check_and_convert_tzinfo, round_to_
 
 
 class FilenameBuilder:
-    def __init__(self, level: str, pds=False, mcs_data_path=None) -> None:
+    def __init__(self, level: str, pds: bool=False, mcs_data_path: str | None=None) -> None:
         if pds:
             self.handler = PDSFileFormatter(level)
         else:
@@ -53,9 +53,11 @@ class FilenameBuilder:
             start, hours=4, force_down=True
         )  # convert times to 4-hour format
         end = round_to_x_hour(end, hours=4, force_up=True)
+        print(start, end)
         datetimes = pd.date_range(
             start, end, freq="4h", inclusive="left"
         )  # generate file datetimes (4-hour fmt)
+        print(datetimes)
         filestrs = [self.handler.convert_dt_to_filestr(d) for d in datetimes]
         return filestrs
 
@@ -148,7 +150,7 @@ class DirectoryFileFormatter(FileFormatterBase):
 
     level_suffix_map = {"L1B": "L1B", "L2": "L2", "L1A": "L1A", "unpacked": "tab"}
 
-    def __init__(self, level: str, mcs_data_path: str = None):
+    def __init__(self, level: str, mcs_data_path: str | None = None):
         self.level = level
         if not mcs_data_path:
             self.mcs_directory = os.getenv("MCS_DATA_DIR_BASE")
