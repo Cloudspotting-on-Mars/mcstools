@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def test_read_l1b(l1b_reader):
     data = l1b_reader.read("test/top.L1B")
     assert data.shape == (5, 262)
@@ -15,4 +16,4 @@ def test_read_l2_ddr2(l2_pds_reader):
     data = l2_pds_reader.read("test/top.L2", "DDR2")
     assert data.shape == (105, 17)
     assert np.isnan(data.iloc[0]["T"])
-    assert data.iloc[0]["Pres"] == 1.8789e+03
+    assert data.iloc[0]["Pres"] == 1.8789e03
