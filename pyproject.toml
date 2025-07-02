@@ -1,8 +1,7 @@
 [project]
 name = "mcstools"
-version = "0.5.0"
+version = "0.0.5"
 description = "Read, load, and process Mars Climate Sounder data"
-keywords = ["mars, mcs"]
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
