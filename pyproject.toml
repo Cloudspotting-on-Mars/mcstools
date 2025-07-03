@@ -1,6 +1,6 @@
 [project]
 name = "mcstools"
-version = "0.0.5"
+version = "0.1.0"
 description = "Read, load, and process Mars Climate Sounder data"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -8,7 +8,7 @@ dependencies = [
     "cmcrameri>=1.9",
     "coloredlogs>=15.0.1",
     "hvplot>=0.11.3",
-    "mars-time",
+    "mars-datetime>=1.0.2",
     "numpy>=2.2.6",
     "pandas>=2.3.0",
     "panel>=1.7.1",
@@ -17,9 +17,6 @@ dependencies = [
     "scipy>=1.15.3",
     "xarray>=2025.6.1",
 ]
-
-[tool.uv.sources]
-mars-time = { git = "https://github.com/marek-slipski/mars_time.git" }
 
 [dependency-groups]
 dev = [

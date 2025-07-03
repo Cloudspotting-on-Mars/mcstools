@@ -147,14 +147,14 @@ wheels = [
 
 [[package]]
 name = "click"
-version = "8.1.3"
+version = "8.2.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "colorama", marker = "sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/59/87/84326af34517fca8c58418d148f2403df25303e02736832403587318e9e8/click-8.1.3.tar.gz", hash = "sha256:7682dc8afb30297001674575ea00d1814d808d6a36af415a82bd481d37ba7b8e", size = 331147, upload-time = "2022-04-28T17:36:09.097Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/60/6c/8ca2efa64cf75a977a0d7fac081354553ebe483345c734fb6b6515d96bbc/click-8.2.1.tar.gz", hash = "sha256:27c491cc05d968d271d5a1db13e3b5a184636d9d930f148c50b038f0d0646202", size = 286342, upload-time = "2025-05-20T23:19:49.832Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c2/f1/df59e28c642d583f7dacffb1e0965d0e00b218e0186d7858ac5233dce840/click-8.1.3-py3-none-any.whl", hash = "sha256:bb4d8133cb15a609f44e8213d9b391b0809795062913b383c62be0ee95b1db48", size = 96588, upload-time = "2022-04-28T17:36:06.952Z" },
+    { url = "https://files.pythonhosted.org/packages/85/32/10bb5764d90a8eee674e9dc6f4db6a0ab47c8c4d0d83c27f7c39ac415a4d/click-8.2.1-py3-none-any.whl", hash = "sha256:61a3265b914e850b85317d0b3109c7f8cd35a670f963866005d6ef1d5175a12b", size = 102215, upload-time = "2025-05-20T23:19:47.796Z" },
 ]
 
 [[package]]
@@ -616,14 +616,18 @@ wheels = [
 ]
 
 [[package]]
-name = "mars-time"
-version = "1.0.0"
-source = { git = "https://github.com/marek-slipski/mars_time.git#6fd9b39bb7f88e3e364f95152b46be5618154391" }
+name = "mars-datetime"
+version = "1.0.2"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "numpy", version = "2.3.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "scipy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/0c/f8/8bedc00021fd65248997806ac579a459b3a497612da6759cdc01afc3f903/mars_datetime-1.0.2.tar.gz", hash = "sha256:928109c6d6de8f8055ee6c0255e4b69d39ccd22a001df7e51efb9f136e26b6dd", size = 10770, upload-time = "2025-07-03T17:38:02.615Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d1/8e/50bb150d87e0b3cacabcbe846196e2f452532742fb419d2e820f5d5f1b1f/mars_datetime-1.0.2-py3-none-any.whl", hash = "sha256:3c9ba8e2e3adfc177c57e813dbac998ed737b840481d0831121f25ff5440bdf0", size = 11871, upload-time = "2025-07-03T17:38:01.378Z" },
 ]
 
 [[package]]
@@ -690,13 +694,13 @@ wheels = [
 
 [[package]]
 name = "mcstools"
-version = "0.0.5"
+version = "0.0.6"
 source = { editable = "." }
 dependencies = [
     { name = "cmcrameri" },
     { name = "coloredlogs" },
     { name = "hvplot" },
-    { name = "mars-time" },
+    { name = "mars-datetime" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "numpy", version = "2.3.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pandas" },
@@ -720,7 +724,7 @@ requires-dist = [
     { name = "cmcrameri", specifier = ">=1.9" },
     { name = "coloredlogs", specifier = ">=15.0.1" },
     { name = "hvplot", specifier = ">=0.11.3" },
-    { name = "mars-time", git = "https://github.com/marek-slipski/mars_time.git" },
+    { name = "mars-datetime", specifier = ">=1.0.2" },
     { name = "numpy", specifier = ">=2.2.6" },
     { name = "pandas", specifier = ">=2.3.0" },
     { name = "panel", specifier = ">=1.7.1" },
