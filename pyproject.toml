@@ -18,7 +18,7 @@ dependencies = [
     "xarray>=2025.6.1",
 ]
 
-[dependency-groups]
+[project.optional-dependencies]
 dev = [
     "black>=25.1.0",
     "flake8>=7.3.0",
