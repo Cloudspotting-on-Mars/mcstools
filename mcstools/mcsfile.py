@@ -331,7 +331,6 @@ class L1BFile(L1BLikeFile):
 
 
 class L2File(MCSFile):
-
     """
     Class with MCS L2_2d file information and methods
     to read in files and store data.

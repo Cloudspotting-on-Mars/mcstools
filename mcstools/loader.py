@@ -1,10 +1,8 @@
 import datetime as dt
 from typing import Union
 
-import dask.dataframe as dd
 import numpy as np
 import pandas as pd
-from dask import delayed
 from mars_time import MarsTime, marstime_to_datetime
 
 from mcstools.data_path_handler import FilenameBuilder
@@ -27,30 +25,23 @@ class L1BLoader:
         )
         self.reader = L1BReader(pds=pds)
 
-    def load(self, files, dask=False, add_cols: list = None, **kwargs):
+    def load(self, files, add_cols: list = None, **kwargs):
         if not isinstance(files, (list, np.ndarray, pd.Series)):
             return self.reader.read(files, add_cols=add_cols, **kwargs)
         elif len(files) == 0:
             df = pd.DataFrame(columns=self.columns)
         else:
-            if not dask:
-                pieces = []
-                for f in sorted(files):
-                    try:
-                        fdf = self.reader.read(f, add_cols=add_cols, **kwargs)
-                    except LookupError as error:
-                        logger.error(error)
-                    except FileNotFoundError as error:
-                        logger.error(error, "\nIgnoring.")
-                        continue
-                    pieces.append(fdf)
-                df = pd.concat(pieces)
-            else:
-                dfs = [
-                    delayed(self.reader.read)(f, None, add_cols, **kwargs)
-                    for f in sorted(files)
-                ]
-                df = dd.from_delayed(dfs)
+            pieces = []
+            for f in sorted(files):
+                try:
+                    fdf = self.reader.read(f, add_cols=add_cols, **kwargs)
+                except LookupError as error:
+                    logger.error(error)
+                except FileNotFoundError as error:
+                    logger.error(error, "\nIgnoring.")
+                    continue
+                pieces.append(fdf)
+            df = pd.concat(pieces)
         return df
 
     def load_date_range(self, start_time, end_time, add_cols=["dt"], **kwargs):
@@ -83,7 +74,6 @@ class L1BLoader:
         profiles: specific profiles to reduce to
         ddr: data record [DDR1, DDR2, DDR3]
         add_cols: additional columns to generate and add ["dt"]
-        dask: option to load via dask delay
         verbose: output log details
 
         Returns
@@ -180,7 +170,6 @@ class L2Loader:
         files: Union[str, list] = None,
         profiles: Union[list, pd.Series] = None,
         add_cols: list = None,
-        dask: bool = False,
         verbose: bool = False,
     ) -> pd.DataFrame:
         """
@@ -190,12 +179,11 @@ class L2Loader:
         profiles: specific profiles to reduce to
         ddr: data record [DDR1, DDR2, DDR3]
         add_cols: additional columns to generate and add ["dt"]
-        dask: option to load via dask delay
         verbose: output log details
         """
         # Setup files to load if only profiles given
         if files is None:
-            if type(profiles) == pd.Series:
+            if isinstance(profiles, pd.Series):
                 profiles = sorted(profiles.to_list())
             # Get files from profile names
             filestrs = sorted(
@@ -223,7 +211,6 @@ class L2Loader:
                 ddr,
                 profiles=profiles,
                 add_cols=add_cols,
-                dask=dask,
                 verbose=verbose,
             )
         return df
@@ -234,7 +221,6 @@ class L2Loader:
         ddr: str,
         profiles: list = None,
         add_cols: list = None,
-        dask: bool = False,
         verbose: bool = False,
     ):
         """
@@ -244,35 +230,28 @@ class L2Loader:
         profiles: specific profiles to reduce to
         ddr: data record [DDR1, DDR2, DDR3]
         add_cols: additional columns to generate and add ["dt"]
-        dask: option to load via dask delay
         verbose: output log details
         """
         if verbose:
             logger.info(f"Loading L2 {ddr} data ({len(files)} files).")
-        if not dask:
-            # Read in fiels one by one
-            pieces = []  # initialize list of DFs
-            for f in sorted(files):
-                try:
-                    fdf = self.reader.read(f, ddr, add_cols)
-                except (FileNotFoundError, LookupError) as e:
-                    if verbose:
-                        logger.warning(e)
-                    continue
-                if profiles is not None:
-                    fdf = fdf[
-                        fdf["Profile_identifier"].isin(profiles)
-                    ]  # Reduce to subset
-                pieces.append(fdf)
-            if len(pieces) == 0:
-                if add_cols is not None:
-                    empty_df_cols = self.reader.data_records[ddr]["columns"] + add_cols
-                df = pd.DataFrame(columns=empty_df_cols)
-            else:
-                df = pd.concat(pieces, ignore_index=True)  # combine
+        # Read in fiels one by one
+        pieces = []  # initialize list of DFs
+        for f in sorted(files):
+            try:
+                fdf = self.reader.read(f, ddr, add_cols)
+            except (FileNotFoundError, LookupError) as e:
+                if verbose:
+                    logger.warning(e)
+                continue
+            if profiles is not None:
+                fdf = fdf[fdf["Profile_identifier"].isin(profiles)]  # Reduce to subset
+            pieces.append(fdf)
+        if len(pieces) == 0:
+            if add_cols is not None:
+                empty_df_cols = self.reader.data_records[ddr]["columns"] + add_cols
+            df = pd.DataFrame(columns=empty_df_cols)
         else:
-            dfs = [delayed(self.reader.read)(f, ddr, add_cols) for f in sorted(files)]
-            df = dd.from_delayed(dfs)
+            df = pd.concat(pieces, ignore_index=True)  # combine
         return df
 
     def load_date_range(
@@ -291,7 +270,6 @@ class L2Loader:
         profiles: specific profiles to reduce to
         ddr: data record [DDR1, DDR2, DDR3]
         add_cols: additional columns to generate and add ["dt"]
-        dask: option to load via dask delay
         verbose: output log details
         """
         times = check_and_convert_start_end_times(start_time, end_time)
@@ -330,7 +308,6 @@ class L2Loader:
         profiles: specific profiles to reduce to
         ddr: data record [DDR1, DDR2, DDR3]
         add_cols: additional columns to generate and add ["dt"]
-        dask: option to load via dask delay
         verbose: output log details
         """
         if isinstance(datetimes, pd.Series):
@@ -366,7 +343,6 @@ class L2Loader:
         profiles: specific profiles to reduce to
         ddr: data record [DDR1, DDR2, DDR3]
         add_cols: additional columns to generate and add ["dt"]
-        dask: option to load via dask delay
         verbose: output log details
 
         Returns

@@ -22,7 +22,7 @@ def round_to_x_hour(date, hours=4, force_down=False, force_up=False):
         raise ValueError("Can't force rounding up and down")
     elif force_down:
         up = False  # force always round down to get filename from datetime
-    elif force_up:
+    elif force_up and date != dt_start_of_xhour:
         up = True  # force always round up
     # Round
     if up:
@@ -45,7 +45,7 @@ def convert_date_utcs(date: str, utc: str, with_utc_tzinfo=True):
     _: signle datetime value
     """
     fmt = "%d-%b-%Y %H:%M:%S.%f"
-    if type(date) != str or type(utc) != str:
+    if not isinstance(date, str) or not isinstance(utc, str):
         date_str = pd.NaT
     else:
         date_str = date.strip().replace('"', "") + " " + utc.strip().replace('"', "")
@@ -73,7 +73,7 @@ def check_and_convert_start_end_times(start_time, end_time):
                 f"Unrecognized type ({type(t)}) for start/end time, "
                 "must be datetime or isoformat str"
             )
-        elif type(t) == str:
+        elif isinstance(t, str):
             times[i] = dt.datetime.fromisoformat(t)
         times[i] = check_and_convert_tzinfo(times[i])
     return times

@@ -9,11 +9,12 @@ from mcstools.util.log import logger
 from mcstools.util.time import GDS_DATE_FMT, check_and_convert_tzinfo, round_to_x_hour
 
 # TODO: check_file_exists shouldn't be part of path handler, should be part of loader
-# TODO: make_n_before_after(f, before, after)
 
 
 class FilenameBuilder:
-    def __init__(self, level: str, pds=False, mcs_data_path=None) -> None:
+    def __init__(
+        self, level: str, pds: bool = False, mcs_data_path: str | None = None
+    ) -> None:
         if pds:
             self.handler = PDSFileFormatter(level)
         else:
@@ -148,7 +149,7 @@ class DirectoryFileFormatter(FileFormatterBase):
 
     level_suffix_map = {"L1B": "L1B", "L2": "L2", "L1A": "L1A", "unpacked": "tab"}
 
-    def __init__(self, level: str, mcs_data_path: str = None):
+    def __init__(self, level: str, mcs_data_path: str | None = None):
         self.level = level
         if not mcs_data_path:
             self.mcs_directory = os.getenv("MCS_DATA_DIR_BASE")

@@ -2,12 +2,15 @@
 Tools to read and process Mars Climate Sounder data.
 
 #### Setup
-Download or clone the repo:
+Setup a virtual environment with `python3[>3.10] -m venv env`.
+
+Then, either pip install: `pip install mcstools`
+
+Or download or clone the repo:
 ```bash
 $ git clone https://github.com/cloudspotting-on-mars/mcstools
 ```
-
-Setup a virtual environment with `python3 -m venv env` and install with `pip install -e .`
+and install with `pip install -e .`
 
 #### Download data
 See https://pds-atmospheres.nmsu.edu/data_and_services/atmospheres_data/MARS/atmosphere_temp_prof.html
