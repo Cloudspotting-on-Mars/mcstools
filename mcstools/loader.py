@@ -117,7 +117,7 @@ class L1BLoader:
         files = filestrs.apply(
             self.filename_builder.make_filename_from_filestr
         ).unique()
-        return self.load(files)
+        return self.load(files, **kwargs)
 
     def load_files_around_file(self, f: str, n: int = 1, **kwargs) -> pd.DataFrame:
         """
