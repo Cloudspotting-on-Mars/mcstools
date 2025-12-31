@@ -517,7 +517,7 @@ class DetectorPositions:
             axis=1,
         )
         data_alts = data_alts.rename(
-            {x: f"{colname_prefix}_{str(x+1).zfill(2)}" for x in data_alts.columns},
+            {x: f"{colname_prefix}_{str(x + 1).zfill(2)}" for x in data_alts.columns},
             axis=1,
         )
         return data_alts
