@@ -201,7 +201,7 @@ class L1BDataPipeline(DataPipeline):
     az_range_map = {
         "in": (170, 190),
         "left": (80, 100),
-        "right": (260, 280),
+        "right": (200, 280),
         "aft": (0, 3),
     }
 
