@@ -25,6 +25,26 @@ bin_config_example = {
     "LTST": (0, 1, 6 / 24.0),
 }
 
+class Bin():
+    def __init__(self, start, stop, size):
+        self.start = start
+        self.stop = stop
+        self.size = size
+    
+    def make_bins(self):
+        return np.arange(self.start, self.stop + self.size, self.size)
+
+    @property
+    def bins(self):
+        return self.make_bins()
+
+    @property
+    def midpoints(self):
+        return (self.bins[:-1] + self.bins[1:])/2
+
+    def find_bin_from_value(self, value):
+        return self.bins[np.digitize(value, self.bins)-1]
+
 
 def make_bins(bin_setup: tuple) -> np.array:
     return np.arange(bin_setup[0], bin_setup[1] + bin_setup[2], bin_setup[2])
@@ -81,7 +101,7 @@ def generate_filter_config_from_location_and_bins(
 
 
 def filter_ddr1_df_from_config(
-    ddr1_df: pd.DataFrame, filter_config: dict
+    ddr1_df: pd.DataFrame, filter_config: dict, verbose=False
 ) -> pd.DataFrame:
     """
     Filter DDR1 data from a config dictionary, where config gives:
@@ -102,14 +122,17 @@ def filter_ddr1_df_from_config(
     for field, vals in filter_config.items():
         # Select rows within range for tuple
         if type(vals) in [tuple]:
-            print(f"Filtering {field} to within {vals}.")
+            if verbose:
+                print(f"Filtering {field} to within {vals}.")
             ddr1_df = ddr1_df[ddr1_df[field].between(*vals)]
         # Select rows with corresponding flags for list
         if type(vals) in [list]:
-            print(f"Selecting rows with {field} in {vals}.")
+            if verbose:
+                print(f"Selecting rows with {field} in {vals}.")
             ddr1_df = ddr1_df[ddr1_df[field].isin(vals)]
         if ddr1_df.empty:
-            print("No profiles left after filtering")
+            if verbose:
+                print("No profiles left after filtering")
             break
     return ddr1_df
 
