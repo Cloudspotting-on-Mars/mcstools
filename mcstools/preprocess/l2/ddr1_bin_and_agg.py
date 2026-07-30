@@ -15,10 +15,10 @@ from mcstools.util.io import load_yaml, makedirs
 MY_DEFAULT= list(range(29, 37))
 BIN_CONFIG_DEFAULT = {
     "Ls": Bin(0, 140, 3),
-    "Surf_lat": Bin(-90, 90, 5),
-    "Surf_lon": Bin(-180, 180, 5),
-    "Profile_lat": Bin(-90, 90, 5),
-    "Profile_lon": Bin(-180, 180, 5)
+    "Surf_lat": Bin(-90, 90, 3),
+    "Surf_lon": Bin(-180, 180, 3),
+    "Profile_lat": Bin(-90, 90, 3),
+    "Profile_lon": Bin(-180, 180, 3)
 }
 FILTER_CONFIG_DEFAULT = {
     "LTST": (9/24, 21/24),
@@ -196,7 +196,6 @@ def main(
             if len(merged_stat_ds) == 0:
                 continue
             single_my_ds = xr.concat([ds for ds in merged_stat_ds if ds is not None], dim="Ls", join="outer", compat="no_conflicts")
-            print(single_my_ds)
             all_my_ds.append(single_my_ds)
     print("Finished processing.")
     #total_bytes = sum(ds.nbytes for ds in all_my_ds)
@@ -217,7 +216,7 @@ def main_cli(output_path):
     results = main()
     print(output_path)
     makedirs(output_path)
-    results.to_netcdf(output_path)
+    results.to_netcdf(output_path, engine="netcdf4")
 
 
 if __name__=="__main__":
