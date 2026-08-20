@@ -23,6 +23,7 @@ VERTICAL_SLIDER_STYLE = """
 }
 """
 
+
 def plot(data):
     """
     Plot radiances as a function of UTC and detector.
@@ -33,6 +34,7 @@ def plot(data):
         vdims=["Radiance", "Scene_lat", "Scene_lon", "LTST", "L_sub_s"],
     )
     return p
+
 
 def create_channel_tab(d, channel_name, detector_bounds):
     """Creates a plot and linked horizontal range slider for a single channel."""
@@ -88,7 +90,7 @@ def all_plots(df_ave):
     type=click.Choice(["in", "aft", "right", "left"]),
     default="in",
     help="Viewing direction to plot",
-    show_default=True
+    show_default=True,
 )
 @click.option(
     "--port",
