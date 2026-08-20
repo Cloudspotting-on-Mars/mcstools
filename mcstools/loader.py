@@ -310,18 +310,18 @@ class L2Loader:
         add_cols: additional columns to generate and add ["dt"]
         verbose: output log details
         """
-        if isinstance(datetimes, pd.Series):
+        if isinstance(datetimes, list):
             pass
-        elif isinstance(datetimes, list):
-            datetimes = pd.Series(datetimes)
+        elif isinstance(datetimes, pd.Series):
+            datetimes = datetimes.to_list()
         else:
             raise NotImplementedError(
                 f"Loading from {type(datetimes)} not implemented."
             )
-        filestrs = datetimes.apply(self.filename_builder.handler.convert_dt_to_filestr)
-        files = filestrs.apply(
-            self.filename_builder.make_filename_from_filestr
-        ).unique()
+        filestrs = [self.filename_builder.handler.convert_dt_to_filestr(t) for t in datetimes]
+        files = list(set([
+            self.filename_builder.make_filename_from_filestr(f) for f in filestrs
+        ]))
         return self.load(ddr, files, verbose=verbose, **kwargs)
 
     def load_ls_range(

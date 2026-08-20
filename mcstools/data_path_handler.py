@@ -152,6 +152,7 @@ class DirectoryFileFormatter(FileFormatterBase):
     def __init__(self, level: str, mcs_data_path: str | None = None):
         self.level = level
         if not mcs_data_path:
+            load_dotenv()
             self.mcs_directory = os.getenv("MCS_DATA_DIR_BASE")
             if not self.mcs_directory:
                 raise ValueError(
