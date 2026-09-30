@@ -87,7 +87,7 @@ def all_plots(df_ave):
 @click.option("--filestr", default="071214040000")
 @click.option(
     "--direction",
-    type=click.Choice(["in", "aft", "right", "left"]),
+    type=click.Choice(["in", "aft", "right", "left", "left off", "right off"]),
     default="in",
     help="Viewing direction to plot",
     show_default=True,
