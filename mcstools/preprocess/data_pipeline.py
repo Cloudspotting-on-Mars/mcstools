@@ -371,6 +371,16 @@ class L1BDataPipeline(DataPipeline):
             and last_az_cmd < self.az_range_map["aft"][1]
         ):
             return "aft"
+        elif (
+            last_az_cmd >= self.az_range_map["left"][1]
+            and last_az_cmd < self.az_range_map["in"][0]
+        ):
+            return "left off"
+        elif (
+            last_az_cmd >= self.az_range_map["in"][1]
+            and last_az_cmd < self.az_range_map["right"][0]
+        ):
+            return "right off"
         else:
             return np.nan
 
