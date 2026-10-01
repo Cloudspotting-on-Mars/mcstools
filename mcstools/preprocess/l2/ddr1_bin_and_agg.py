@@ -8,20 +8,21 @@ from typing import List, Dict
 import xarray as xr
 from mars_time import MarsTime
 
-from mcstools.preprocess.l2.filter_and_bin import filter_ddr1_df_from_config, Bin
+from mcstools.preprocess.bin import Bins
+from mcstools.preprocess.l2.filter_and_bin import filter_ddr1_df_from_config
 from mcstools import L2Loader
 from mcstools.util.io import load_yaml, makedirs
 
-MY_DEFAULT= list(range(29, 37))
+MY_DEFAULT= list(range(29, 30))
 BIN_CONFIG_DEFAULT = {
-    "Ls": Bin(0, 140, 3),
-    "Surf_lat": Bin(-90, 90, 3),
-    "Surf_lon": Bin(-180, 180, 3),
-    "Profile_lat": Bin(-90, 90, 3),
-    "Profile_lon": Bin(-180, 180, 3)
+    "Ls": Bins(0, 140, 15),
+    "Surf_lat": Bins(-90, 90, 5),
+    "Surf_lon": Bins(-180, 180, 5),
+    "Profile_lat": Bins(-90, 90, 5),
+    "Profile_lon": Bins(-180, 180, 5)
 }
 FILTER_CONFIG_DEFAULT = {
-    "LTST": (9/24, 21/24),
+    "LTST": (21/24, 9/24),
     "Obs_qual": [0, 1, 7, 10, 11, 17],
     "Gqual": [0, 6, 12],
     "1": [0]
@@ -45,8 +46,8 @@ def load_ddr1_ls_chunk(loader, my, ls_bin_start, ls_bin_end):
 def make_stats_for_single_bin_from_subdf(
     df: pd.DataFrame,
     variable_column: str,
-    lat_bin: Bin,
-    lon_bin: Bin,
+    lat_bin: Bins,
+    lon_bin: Bins,
     lat_col: str,
     lon_col: str,
 ):
@@ -108,8 +109,8 @@ def load_and_aggregate_single_ls_chunk(
     ddr1_lat_bin_col, 
     ddr1_lon_bin_col,
     ddr2_agg_columns=List[str]|None,
-    ddr2_lat_bin=Bin|None,
-    ddr2_lon_bin=Bin|None,
+    ddr2_lat_bin=Bins|None,
+    ddr2_lon_bin=Bins|None,
     ddr2_lat_bin_col=str|None,
     ddr2_lon_bin_col=str|None,
     verbose=False

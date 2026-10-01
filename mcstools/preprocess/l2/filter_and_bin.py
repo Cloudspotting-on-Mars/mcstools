@@ -25,27 +25,6 @@ bin_config_example = {
     "LTST": (0, 1, 6 / 24.0),
 }
 
-class Bin():
-    def __init__(self, start, stop, size):
-        self.start = start
-        self.stop = stop
-        self.size = size
-    
-    def make_bins(self):
-        return np.arange(self.start, self.stop + self.size, self.size)
-
-    @property
-    def bins(self):
-        return self.make_bins()
-
-    @property
-    def midpoints(self):
-        return (self.bins[:-1] + self.bins[1:])/2
-
-    def find_bin_from_value(self, value):
-        return self.bins[np.digitize(value, self.bins)-1]
-
-
 def make_bins(bin_setup: tuple) -> np.array:
     return np.arange(bin_setup[0], bin_setup[1] + bin_setup[2], bin_setup[2])
 
@@ -124,7 +103,10 @@ def filter_ddr1_df_from_config(
         if type(vals) in [tuple]:
             if verbose:
                 print(f"Filtering {field} to within {vals}.")
-            ddr1_df = ddr1_df[ddr1_df[field].between(*vals)]
+            if vals[1] >= vals[0]:
+                ddr1_df = ddr1_df[ddr1_df[field].between(*vals)]
+            else:
+                ddr1_df = ddr1_df[~ddr1_df[field].between(vals[1], vals[0])]
         # Select rows with corresponding flags for list
         if type(vals) in [list]:
             if verbose:
