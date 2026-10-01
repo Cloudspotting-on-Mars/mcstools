@@ -2,24 +2,22 @@ from json import load
 import click
 import os
 from joblib import Parallel, delayed, parallel_config
-import pandas as pd
-from scipy.stats import binned_statistic_2d
 from typing import List, Dict
 import xarray as xr
 from mars_time import MarsTime
 
-from mcstools.preprocess.bin import Bins
+from mcstools.preprocess.bin import BinGrid, compute_bin_stats_2d
 from mcstools.preprocess.l2.filter_and_bin import filter_ddr1_df_from_config
 from mcstools import L2Loader
 from mcstools.util.io import load_yaml, makedirs
 
 MY_DEFAULT= list(range(29, 30))
 BIN_CONFIG_DEFAULT = {
-    "Ls": Bins(0, 140, 15),
-    "Surf_lat": Bins(-90, 90, 5),
-    "Surf_lon": Bins(-180, 180, 5),
-    "Profile_lat": Bins(-90, 90, 5),
-    "Profile_lon": Bins(-180, 180, 5)
+    "Ls": BinGrid(0, 140, 15, "Ls"),
+    "Surf_lat": BinGrid(-90, 90, 5, "Surf_lat"),
+    "Surf_lon": BinGrid(-180, 180, 5, "Surf_lon"),
+    "Profile_lat": BinGrid(-90, 90, 5, "Profile_lat"),
+    "Profile_lon": BinGrid(-180, 180, 5, "Profile_lon")
 }
 FILTER_CONFIG_DEFAULT = {
     "LTST": (21/24, 9/24),
@@ -43,86 +41,29 @@ def load_ddr1_ls_chunk(loader, my, ls_bin_start, ls_bin_end):
             verbose=False
         )
 
-def make_stats_for_single_bin_from_subdf(
-    df: pd.DataFrame,
-    variable_column: str,
-    lat_bin: Bins,
-    lon_bin: Bins,
-    lat_col: str,
-    lon_col: str,
-):
-    """
-    Bin a single DDR1 or DDR2 df by lat/lon and compute statistics for profiles within that bin.
-    Ideally filtered to small time window and if DDR2 filtered to single level (if not, will
-    compute statistics across all levels). 
-    """
-    valid_variable_columns = ["Dust_column", "T_surf", "Dust", "T", "H2Oice" "Pres", "Alt"]
-    valid_lat_columns = ["Surf_lat", "Profile_lat", "Solar_lat", "Lat"]
-    valid_lon_columns = ["Surf_lon", "Profile_lon", "Solar_lon", "Lon"]
-    if variable_column not in valid_variable_columns:
-        raise ValueError(f"Either {variable_column} not valid L2 column or not yet implemented for aggregating")
-    for lc, valid_lc in zip([lat_col, lon_col], [valid_lat_columns, valid_lon_columns]):
-        if lc not in valid_lc:
-            raise ValueError(f"{lc} not a valid lat/lon col: {valid_lc}")
-    not_null_df = df.dropna(subset=variable_column)
-    null_df = df[df[variable_column].isnull()]
-    if not not_null_df.empty: 
-        stat_dict = {
-            stat: binned_statistic_2d(
-                not_null_df[lat_col], 
-                not_null_df[lon_col],
-                not_null_df[variable_column], 
-                bins=[lat_bin.bins, lon_bin.bins],
-                statistic=stat
-            ).statistic for stat in ["mean", "median", "std", "count"]
-        }
-    else: 
-        stat_dict = {}
-    if not null_df.empty:
-        stat_dict["nan_count"] = binned_statistic_2d(
-            null_df[lat_col], 
-                null_df[lon_col],
-                null_df[variable_column], 
-                bins=[lat_bin.bins, lon_bin.bins],
-                statistic="count"
-        ).statistic
-    ds = xr.Dataset(
-        data_vars={
-            f"{variable_column}_{stat}": ([lat_col, lon_col], stat_dict[stat]) for stat in stat_dict.keys()
-        },
-        coords={
-            lat_col: lat_bin.midpoints,
-            lon_col: lon_bin.midpoints,
-        }
-    )
-    return ds
-
 def load_and_aggregate_single_ls_chunk(
     loader,
     my,
-    ls_bin,
+    ls_bin: BinGrid,
     ls_index,
-    filter_config, 
-    ddr1_agg_columns, 
-    ddr1_lat_bin, 
-    ddr1_lon_bin, 
-    ddr1_lat_bin_col, 
-    ddr1_lon_bin_col,
+    filter_config,
+    ddr1_agg_columns,
+    ddr1_lat_bin: BinGrid,
+    ddr1_lon_bin: BinGrid,
     ddr2_agg_columns=List[str]|None,
-    ddr2_lat_bin=Bins|None,
-    ddr2_lon_bin=Bins|None,
-    ddr2_lat_bin_col=str|None,
-    ddr2_lon_bin_col=str|None,
+    ddr2_lat_bin=BinGrid|None,
+    ddr2_lon_bin=BinGrid|None,
     verbose=False
 ):
-    print(f"Processing MY{my} {ls_bin.midpoints[ls_index]} on PID: {os.getpid()}")
-    ddr1_df = load_ddr1_ls_chunk(loader, my, ls_bin.bins[ls_index], ls_bin.bins[ls_index+1])
+    single_ls_bin = ls_bin[ls_index]
+    print(f"Processing MY{my} {single_ls_bin.midpoint} on PID: {os.getpid()}")
+    ddr1_df = load_ddr1_ls_chunk(loader, my, single_ls_bin.start, single_ls_bin.stop)
     ddr1_df = filter_ddr1_df_from_config(ddr1_df, filter_config, verbose=verbose)
     if ddr1_df.empty:
         return
     stat_ds_list = []
     for ddr1_col in ddr1_agg_columns:
-        stat_ds = make_stats_for_single_bin_from_subdf(ddr1_df, ddr1_col, ddr1_lat_bin, ddr1_lon_bin, lat_col=ddr1_lat_bin_col, lon_col=ddr1_lon_bin_col)
+        stat_ds = compute_bin_stats_2d(ddr1_df, ddr1_col, ddr1_lat_bin, ddr1_lon_bin)
         stat_ds_list.append(stat_ds)
     if ddr2_agg_columns is not None:
         ddr2_df = loader.load("DDR2", profiles=ddr1_df["Profile_identifier"])
@@ -131,27 +72,20 @@ def load_and_aggregate_single_ls_chunk(
         for ddr2_col in ddr2_agg_columns:
             level_stat_ds_list = []
             for plevel, plevel_df in ddr2_df.groupby("level"):
-                stat_ds = make_stats_for_single_bin_from_subdf(
-                    plevel_df, 
-                    ddr2_col, 
-                    ddr2_lat_bin, 
-                    ddr2_lon_bin, 
-                    lat_col=ddr2_lat_bin_col, 
-                    lon_col=ddr2_lon_bin_col,
-                )
+                stat_ds = compute_bin_stats_2d(plevel_df, ddr2_col, ddr2_lat_bin, ddr2_lon_bin)
                 stat_ds = stat_ds.expand_dims(level=[plevel]).assign_coords({"Pres": ("level", [plevel_df["Pres"].unique().squeeze()])})
                 level_stat_ds_list.append(stat_ds)
             merged_level_stat_ds = xr.concat(
                 level_stat_ds_list,
-                dim="level", 
-                join="outer", 
+                dim="level",
+                join="outer",
                 compat="no_conflicts",
             )
             ddr2_stat_ds_list.append(merged_level_stat_ds)
         merged_ddr2_stat_ds = xr.merge(ddr2_stat_ds_list, join="outer", compat="no_conflicts")
         stat_ds_list.append(merged_ddr2_stat_ds)
     merged_stat_ds = xr.merge(stat_ds_list)
-    merged_stat_ds = merged_stat_ds.expand_dims(MY=[my], Ls=[ls_bin.midpoints[ls_index]])
+    merged_stat_ds = merged_stat_ds.expand_dims(MY=[my], Ls=[single_ls_bin.midpoint])
     return merged_stat_ds
 
 def main(
@@ -176,23 +110,19 @@ def main(
         for my in my_list:
             merged_stat_ds = Parallel()(delayed(
                 load_and_aggregate_single_ls_chunk)(
-                    loader, 
-                    my, 
-                    bin_config["Ls"], 
-                    ls_index, 
-                    filter_config, 
-                    ddr1_agg_columns,  
-                    bin_config[ddr1_lat_bin_col], 
-                    bin_config[ddr1_lon_bin_col], 
-                    ddr1_lat_bin_col, 
-                    ddr1_lon_bin_col,
+                    loader,
+                    my,
+                    bin_config["Ls"],
+                    ls_index,
+                    filter_config,
+                    ddr1_agg_columns,
+                    bin_config[ddr1_lat_bin_col],
+                    bin_config[ddr1_lon_bin_col],
                     ddr2_agg_columns=ddr2_agg_columns,
                     ddr2_lat_bin=bin_config[ddr2_lat_bin_col],
                     ddr2_lon_bin=bin_config[ddr2_lon_bin_col],
-                    ddr2_lat_bin_col=ddr2_lat_bin_col,
-                    ddr2_lon_bin_col=ddr2_lon_bin_col,
                     verbose=verbose
-                ) for ls_index, ls_midpoint in enumerate(bin_config["Ls"].midpoints)
+                ) for ls_index in range(len(bin_config["Ls"]))
             )
             if len(merged_stat_ds) == 0:
                 continue

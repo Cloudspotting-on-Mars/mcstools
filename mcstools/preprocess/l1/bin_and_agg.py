@@ -6,65 +6,36 @@ from mcstools import L1BLoader
 import click
 import os
 from mars_time import MarsTime
-from mcstools.preprocess.bin import Bins, Bin
+from mcstools.preprocess.bin import BinGrid, Bin, compute_bin_stats_2d
 from mcstools.util.log import setup_logging, logger
 from mcstools.util.io import makedirs
-import pandas as pd
-from scipy.stats import binned_statistic_2d, quantile
+import numpy as np
 import xarray as xr
 
 MY_DEFAULT = [29]
 
 BIN_CONFIG_DEFAULT = {
-    "Ls": Bins(0, 140 ,5, "Ls"),
-    "Scene_lat": Bins(-90, 90, 15, "Scene_lat"),
-    "Scene_lon": Bins(-180, 180, 15, "Scene_lon"),
+    "Ls": BinGrid(0, 140 ,5, "Ls"),
+    "Scene_lat": BinGrid(-90, 90, 15, "Scene_lat"),
+    "Scene_lon": BinGrid(-180, 180, 15, "Scene_lon"),
 }
 
 DEFAULT_N_JOBS = 72
 DEFAULT_PIPELINE = L1BStandardInTrack()
 AGG_COLUMNS = L1BFile.radcols
 
-def p10(x): return quantile(x, 0.1)
-def p90(x): return quantile(x, 0.9)
+def p10(x): return np.quantile(x, 0.1)
+def p90(x): return np.quantile(x, 0.9)
 
-def make_2d_stats_for_single_ls_bin(
-    df: pd.DataFrame,
-    variable_column: str,
-    lat_bins: Bins,
-    lon_bins: Bins,
-):
-    not_null_df = df.dropna(subset=[variable_column, lat_bins.name, lon_bins.name])
-    if not not_null_df.empty: 
-        stat_dict = {
-            stat_name: binned_statistic_2d(
-                not_null_df[lat_bins.name], 
-                not_null_df[lon_bins.name],
-                not_null_df[variable_column], 
-                bins=[lat_bins.bin_array, lon_bins.bin_array],
-                statistic=stat
-            ).statistic for stat_name, stat in zip(["min", "max", "mean", "median", "std", "count", "q10", "q90"], ["min", "max", "mean", "median", "std", "count", p10, p90])
-        }
-    else: 
-        stat_dict = {}
-    ds = xr.Dataset(
-        data_vars={
-            f"{variable_column}_{stat}": ([lat_bins.name, lon_bins.name], stat_dict[stat]) for stat in stat_dict.keys()
-        },
-        coords={
-            lat_bins.name: lat_bins.midpoints,
-            lon_bins.name: lon_bins.midpoints,
-        }
-    )
-    return ds
+AGG_STATS = ["min", "max", "mean", "median", "std", "count", p10, p90]
 
 def load_and_aggregate_single_ls_bin(
     loader: L1BLoader,
     view_pipeline: Union[L1BStandardInTrack],
     my: int,
     ls_bin: Bin,
-    lat_bins: Bins,
-    lon_bins: Bins
+    lat_bins: BinGrid,
+    lon_bins: BinGrid
 ):
     logger.info(f"Processing MY{my} Ls={ls_bin.midpoint} on PID {os.getpid()}")
     l1b_df = loader.load_ls_range(MarsTime.from_solar_longitude(my, ls_bin.start),
@@ -84,7 +55,7 @@ def load_and_aggregate_single_ls_bin(
     for day_ind, subdf in zip([1, 0], [day_df, night_df]):
         rad_ds_list = []
         for rdr_col in AGG_COLUMNS:
-            stat_ds = make_2d_stats_for_single_ls_bin(subdf, rdr_col, lat_bins, lon_bins)
+            stat_ds = compute_bin_stats_2d(subdf, rdr_col, lat_bins, lon_bins, stats=AGG_STATS, include_nan_count=False)
             rad_ds_list.append(stat_ds)
         rad_ds = xr.merge(rad_ds_list, join="outer", compat="no_conflicts")
         rad_ds = rad_ds.expand_dims(Day=[day_ind])
@@ -111,10 +82,10 @@ def main(
                     loader,
                     view_pipeline,
                     my,
-                    bin_config["Ls"].bins[ls_i],
+                    bin_config["Ls"][ls_i],
                     bin_config["Scene_lat"],
                     bin_config["Scene_lon"]
-            ) for ls_i in range(len(bin_config["Ls"].bins))
+            ) for ls_i in range(len(bin_config["Ls"]))
         )
         single_my_ds = xr.concat([ds for ds in my_stat_ds_list if ds is not None], dim="Ls", join="outer", compat="no_conflicts")
         all_my_ds.append(single_my_ds)
