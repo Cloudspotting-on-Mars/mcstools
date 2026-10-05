@@ -29,7 +29,7 @@ import xarray as xr
 MY_DEFAULT = [29]
 
 BIN_CONFIG_DEFAULT = {
-    "Ls": BinGrid(0, 140 ,5, "Ls"),
+    "Ls": BinGrid(0, 360,5, "Ls"),
     "Scene_lat": BinGrid(-90, 90, 15, "Scene_lat"),
     "Scene_lon": BinGrid(-180, 180, 15, "Scene_lon"),
 }
