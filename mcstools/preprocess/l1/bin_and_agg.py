@@ -126,8 +126,14 @@ def main(
             if len(my_stat_ds_list) == 0:
                 continue
             single_my_ds = xr.concat(my_stat_ds_list, dim="Ls", join="outer", compat="no_conflicts")
+            # An Ls chunk with no data at all (e.g. a gap with no files to load) is simply
+            # absent above rather than producing a dataset - reindex against every bin's
+            # midpoint so those chunks show up as NaN instead of silently vanishing from Ls.
+            single_my_ds = single_my_ds.reindex(Ls=bin_config["Ls"].midpoints)
             all_my_ds.append(single_my_ds)
-    return xr.concat(all_my_ds, dim="MY", join="outer", compat="no_conflicts")
+    all_my_ds = xr.concat(all_my_ds, dim="MY", join="outer", compat="no_conflicts")
+    # Likewise for a Mars Year with no data in any Ls chunk.
+    return all_my_ds.reindex(MY=my_list)
 
 
 @click.command()

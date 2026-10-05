@@ -28,20 +28,21 @@ class L1BLoader:
     def load(self, files, add_cols: list = None, **kwargs):
         if not isinstance(files, (list, np.ndarray, pd.Series)):
             return self.reader.read(files, add_cols=add_cols, **kwargs)
-        elif len(files) == 0:
-            df = pd.DataFrame(columns=self.columns)
+        empty_df_cols = self.reader.columns + (add_cols or [])
+        if len(files) == 0:
+            df = pd.DataFrame(columns=empty_df_cols)
         else:
             pieces = []
             for f in sorted(files):
                 try:
                     fdf = self.reader.read(f, add_cols=add_cols, **kwargs)
-                except LookupError as error:
+                except (LookupError, FileNotFoundError) as error:
                     logger.error(error)
-                except FileNotFoundError as error:
-                    logger.error(error, "\nIgnoring.")
                     continue
                 pieces.append(fdf)
-            df = pd.concat(pieces)
+            # No files actually existed/were readable (e.g. a data gap) - don't crash,
+            # just report an empty result like the len(files) == 0 case above.
+            df = pd.concat(pieces) if len(pieces) > 0 else pd.DataFrame(columns=empty_df_cols)
         return df
 
     def load_date_range(self, start_time, end_time, add_cols=["dt"], **kwargs):

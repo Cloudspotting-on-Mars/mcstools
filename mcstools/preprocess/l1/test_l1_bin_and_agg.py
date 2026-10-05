@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 from mcstools.preprocess.bin import BinGrid
@@ -14,6 +15,20 @@ class FakeL1BLoader:
 
     def load_ls_range(self, start, end, add_cols=None, verbose=False):
         return self.l1b_df.copy()
+
+
+class GapAwareFakeL1BLoader:
+    """Returns real data only for the Ls bin starting at `data_ls_start`; empty otherwise -
+    simulates a data gap (e.g. no files found) for every other Ls bin."""
+
+    def __init__(self, l1b_df, data_ls_start):
+        self.l1b_df = l1b_df
+        self.data_ls_start = data_ls_start
+
+    def load_ls_range(self, start, end, add_cols=None, verbose=False):
+        if abs(start.solar_longitude - self.data_ls_start) < 0.01:
+            return self.l1b_df.copy()
+        return self.l1b_df.iloc[0:0].copy()
 
 
 class IdentityViewPipeline:
@@ -97,3 +112,57 @@ def test_main_includes_every_mars_year():
     )
 
     assert set(ds["MY"].values) == {29, 30}
+
+
+def test_main_fills_ls_gap_with_nan_instead_of_dropping_it():
+    bin_config = {
+        "Ls": BinGrid(0, 10, 5, "Ls"),  # two bins: [0, 5) and [5, 10)
+        "Scene_lat": BinGrid(-90, 90, 10, "Scene_lat"),
+        "Scene_lon": BinGrid(-180, 180, 10, "Scene_lon"),
+    }
+    loader = GapAwareFakeL1BLoader(make_l1b_df(DAY_ROWS), data_ls_start=0)
+    pipeline = IdentityViewPipeline()
+
+    ds = main(
+        loader=loader,
+        view_pipeline=pipeline,
+        my_list=[30],
+        bin_config=bin_config,
+        agg_columns=RAD_COLUMNS,
+        stats=["mean", "count"],
+        n_jobs=1,
+    )
+
+    assert list(ds["Ls"].values) == [2.5, 7.5]
+    assert ds["Rad_A1_01_mean"].sel(Ls=2.5, Day=1, Scene_lat=5.0, Scene_lon=5.0).item() == 15
+    assert np.isnan(ds["Rad_A1_01_mean"].sel(Ls=7.5)).all()
+
+
+def test_main_fills_my_gap_with_nan_instead_of_dropping_it():
+    bin_config = {
+        "Ls": BinGrid(0, 5, 5, "Ls"),
+        "Scene_lat": BinGrid(-90, 90, 10, "Scene_lat"),
+        "Scene_lon": BinGrid(-180, 180, 10, "Scene_lon"),
+    }
+    loader = GapAwareFakeL1BLoader(make_l1b_df(DAY_ROWS), data_ls_start=0)
+    pipeline = IdentityViewPipeline()
+
+    class PerMyLoader(GapAwareFakeL1BLoader):
+        def load_ls_range(self, start, end, add_cols=None, verbose=False):
+            if start.year != 30:
+                return self.l1b_df.iloc[0:0].copy()
+            return super().load_ls_range(start, end, add_cols=add_cols, verbose=verbose)
+
+    ds = main(
+        loader=PerMyLoader(make_l1b_df(DAY_ROWS), data_ls_start=0),
+        view_pipeline=pipeline,
+        my_list=[29, 30],
+        bin_config=bin_config,
+        agg_columns=RAD_COLUMNS,
+        stats=["mean", "count"],
+        n_jobs=1,
+    )
+
+    assert list(ds["MY"].values) == [29, 30]
+    assert ds["Rad_A1_01_mean"].sel(MY=30, Day=1, Scene_lat=5.0, Scene_lon=5.0).item() == 15
+    assert np.isnan(ds["Rad_A1_01_mean"].sel(MY=29)).all()
