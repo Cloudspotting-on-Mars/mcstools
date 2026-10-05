@@ -26,7 +26,7 @@ from mcstools.util.io import makedirs
 import numpy as np
 import xarray as xr
 
-MY_DEFAULT = [29]
+MY_DEFAULT = [29, 30, 31, 32, 33, 34, 35, 36]
 
 BIN_CONFIG_DEFAULT = {
     "Ls": BinGrid(0, 360,5, "Ls"),
