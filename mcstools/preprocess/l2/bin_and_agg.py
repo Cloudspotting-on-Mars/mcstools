@@ -44,10 +44,10 @@ FILTER_CONFIG_DEFAULT = {
 }
 # DDR1's LTST column is a 0-1 fraction of a sol (not hours) - 9/24 to 21/24 is 9am-9pm local time.
 DAY_LTST_RANGE = (9/24, 21/24)
-DDR1_AGG_DEFAULT = ["Dust_column", "T_surf"]
+DDR1_AGG_DEFAULT = ["Dust_column", "H2Oice_column" "T_surf"]
 DDR1_LAT_BIN_COL = "Surf_lat"
 DDR1_LON_BIN_COL = "Surf_lon"
-DDR2_AGG_DEFAULT = ["Dust", "T", "Alt"]
+DDR2_AGG_DEFAULT = ["Dust", "H2Oice", "T", "Alt"]
 DDR2_LAT_BIN_COL = "Profile_lat"
 DDR2_LON_BIN_COL = "Profile_lon"
 DEFAULT_N_JOBS = 72
