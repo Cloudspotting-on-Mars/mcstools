@@ -25,6 +25,7 @@ bin_config_example = {
     "LTST": (0, 1, 6 / 24.0),
 }
 
+
 def make_bins(bin_setup: tuple) -> np.array:
     return np.arange(bin_setup[0], bin_setup[1] + bin_setup[2], bin_setup[2])
 

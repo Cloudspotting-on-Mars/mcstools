@@ -4,10 +4,12 @@ from mcstools.preprocess.l2.filter_and_bin import filter_ddr1_df_from_config
 
 
 def make_df():
-    return pd.DataFrame({
-        "LTST": [0.1, 0.4, 0.6, 0.9],
-        "Obs_qual": [0, 0, 1, 99],
-    })
+    return pd.DataFrame(
+        {
+            "LTST": [0.1, 0.4, 0.6, 0.9],
+            "Obs_qual": [0, 0, 1, 99],
+        }
+    )
 
 
 def test_tuple_range_filter():
@@ -16,7 +18,8 @@ def test_tuple_range_filter():
 
 
 def test_tuple_wraparound_filter():
-    # vals[1] < vals[0] means "outside" the range, e.g. nighttime wrapping through midnight.
+    # vals[1] < vals[0] means "outside" the range, e.g. nighttime wrapping through
+    # midnight.
     df = filter_ddr1_df_from_config(make_df(), {"LTST": (0.7, 0.3)})
     assert list(df["LTST"]) == [0.1, 0.9]
 

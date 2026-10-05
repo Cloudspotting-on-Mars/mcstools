@@ -44,7 +44,11 @@ class L1BLoader:
                 pieces.append(fdf)
             # No files actually existed/were readable (e.g. a data gap) - don't crash,
             # just report an empty result like the len(files) == 0 case above.
-            df = pd.concat(pieces) if len(pieces) > 0 else pd.DataFrame(columns=empty_df_cols)
+            df = (
+                pd.concat(pieces)
+                if len(pieces) > 0
+                else pd.DataFrame(columns=empty_df_cols)
+            )
         return df
 
     def load_date_range(self, start_time, end_time, add_cols=["dt"], **kwargs):
@@ -321,10 +325,12 @@ class L2Loader:
             raise NotImplementedError(
                 f"Loading from {type(datetimes)} not implemented."
             )
-        filestrs = [self.filename_builder.handler.convert_dt_to_filestr(t) for t in datetimes]
-        files = list(set([
-            self.filename_builder.make_filename_from_filestr(f) for f in filestrs
-        ]))
+        filestrs = [
+            self.filename_builder.handler.convert_dt_to_filestr(t) for t in datetimes
+        ]
+        files = list(
+            set([self.filename_builder.make_filename_from_filestr(f) for f in filestrs])
+        )
         return self.load(ddr, files, verbose=verbose, **kwargs)
 
     def load_ls_range(

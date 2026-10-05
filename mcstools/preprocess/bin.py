@@ -1,11 +1,12 @@
 from functools import cached_property
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 import xarray as xr
 from scipy.stats import binned_statistic_2d
 
 
-class Bin():
+class Bin:
     def __init__(self, start, stop):
         self.start = start
         self.stop = stop
@@ -23,13 +24,14 @@ class Bin():
         return self.start == other.start and self.stop == other.stop
 
 
-class BinGrid():
+class BinGrid:
     """
     An evenly-spaced sequence of `Bin`s from `start` to `stop` in steps of `size`.
 
     `name` is both the DataFrame column this grid bins values from and the
     xarray dimension/coordinate name of the resulting binned statistics.
     """
+
     def __init__(self, start, stop, size, name):
         self.start = start
         self.stop = stop

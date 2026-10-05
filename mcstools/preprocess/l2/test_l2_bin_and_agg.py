@@ -1,5 +1,4 @@
 import pandas as pd
-import pytest
 
 from mcstools.preprocess.bin import BinGrid
 from mcstools.preprocess.l2.bin_and_agg import (
@@ -11,7 +10,7 @@ from mcstools.preprocess.l2.bin_and_agg import (
 
 
 class FakeL2Loader:
-    """Duck-typed stand-in for L2Loader backed by fixed, in-memory DDR1/DDR2 DataFrames."""
+    """Duck-typed stand-in for L2Loader backed by fixed, in-memory DDR1/DDR2 frames."""
 
     def __init__(self, ddr1_df, ddr2_df):
         self.ddr1_df = ddr1_df
@@ -27,53 +26,93 @@ class FakeL2Loader:
         return self.ddr2_df[self.ddr2_df["Profile_identifier"].isin(profiles)].copy()
 
     def merge_ddrs(self, ddr2_df, ddr1_df, verbose=False):
-        return pd.merge(ddr2_df, ddr1_df, on="Profile_identifier", how="outer", suffixes=("", "_DDR1"))
+        return pd.merge(
+            ddr2_df,
+            ddr1_df,
+            on="Profile_identifier",
+            how="outer",
+            suffixes=("", "_DDR1"),
+        )
 
 
 def make_ddr1_df(profiles):
-    """profiles: list of dicts with keys Profile_identifier, lat, lon, ltst, dust, t_surf."""
-    return pd.DataFrame({
-        "Profile_identifier": [p["Profile_identifier"] for p in profiles],
-        "Surf_lat": [p["lat"] for p in profiles],
-        "Surf_lon": [p["lon"] for p in profiles],
-        "Profile_lat": [p["lat"] for p in profiles],
-        "Profile_lon": [p["lon"] for p in profiles],
-        "LTST": [p["ltst"] for p in profiles],
-        "Dust_column": [p["dust"] for p in profiles],
-        "T_surf": [p["t_surf"] for p in profiles],
-        "Obs_qual": [0] * len(profiles),
-        "Gqual": [0] * len(profiles),
-        "1": [0] * len(profiles),
-    })
+    """profiles: list of dicts with keys Profile_identifier, lat, lon, ltst, dust,
+    t_surf."""
+    return pd.DataFrame(
+        {
+            "Profile_identifier": [p["Profile_identifier"] for p in profiles],
+            "Surf_lat": [p["lat"] for p in profiles],
+            "Surf_lon": [p["lon"] for p in profiles],
+            "Profile_lat": [p["lat"] for p in profiles],
+            "Profile_lon": [p["lon"] for p in profiles],
+            "LTST": [p["ltst"] for p in profiles],
+            "Dust_column": [p["dust"] for p in profiles],
+            "T_surf": [p["t_surf"] for p in profiles],
+            "Obs_qual": [0] * len(profiles),
+            "Gqual": [0] * len(profiles),
+            "1": [0] * len(profiles),
+        }
+    )
 
 
 def make_ddr2_df(profiles):
-    """profiles: list of dicts with keys Profile_identifier, levels: list of (pres, dust, t, alt)."""
+    """profiles: list of dicts with keys Profile_identifier, levels: list of
+    (pres, dust, t, alt)."""
     rows = []
     for p in profiles:
         for level, (pres, dust, t, alt) in enumerate(p["levels"]):
-            rows.append({
-                "Profile_identifier": p["Profile_identifier"],
-                "level": level,
-                "Pres": pres,
-                "Dust": dust,
-                "T": t,
-                "Alt": alt,
-            })
+            rows.append(
+                {
+                    "Profile_identifier": p["Profile_identifier"],
+                    "level": level,
+                    "Pres": pres,
+                    "Dust": dust,
+                    "T": t,
+                    "Alt": alt,
+                }
+            )
     return pd.DataFrame(rows)
 
 
 DAY_PROFILES = [
-    {"Profile_identifier": "D1", "lat": 5, "lon": 5, "ltst": 0.5, "dust": 10, "t_surf": 200,
-     "levels": [(100, 1, 10, 5), (200, 2, 20, 15)]},
-    {"Profile_identifier": "D2", "lat": 5, "lon": 5, "ltst": 0.55, "dust": 20, "t_surf": 220,
-     "levels": [(100, 3, 30, 25), (200, 4, 40, 35)]},
+    {
+        "Profile_identifier": "D1",
+        "lat": 5,
+        "lon": 5,
+        "ltst": 0.5,
+        "dust": 10,
+        "t_surf": 200,
+        "levels": [(100, 1, 10, 5), (200, 2, 20, 15)],
+    },
+    {
+        "Profile_identifier": "D2",
+        "lat": 5,
+        "lon": 5,
+        "ltst": 0.55,
+        "dust": 20,
+        "t_surf": 220,
+        "levels": [(100, 3, 30, 25), (200, 4, 40, 35)],
+    },
 ]
 NIGHT_PROFILES = [
-    {"Profile_identifier": "N1", "lat": -5, "lon": -5, "ltst": 0.0, "dust": 100, "t_surf": 150,
-     "levels": [(100, 5, 50, 45), (200, 6, 60, 55)]},
-    {"Profile_identifier": "N2", "lat": -5, "lon": -5, "ltst": 0.95, "dust": 300, "t_surf": 250,
-     "levels": [(100, 7, 70, 65), (200, 8, 80, 75)]},
+    {
+        "Profile_identifier": "N1",
+        "lat": -5,
+        "lon": -5,
+        "ltst": 0.0,
+        "dust": 100,
+        "t_surf": 150,
+        "levels": [(100, 5, 50, 45), (200, 6, 60, 55)],
+    },
+    {
+        "Profile_identifier": "N2",
+        "lat": -5,
+        "lon": -5,
+        "ltst": 0.95,
+        "dust": 300,
+        "t_surf": 250,
+        "levels": [(100, 7, 70, 65), (200, 8, 80, 75)],
+    },
 ]
 
 
@@ -106,10 +145,22 @@ def test_bins_ddr1_and_ddr2_by_day_and_night():
     assert ds["Dust_column_count"].sel(Day=1, Surf_lat=7.5, Surf_lon=7.5).item() == 2
     assert ds["Dust_column_mean"].sel(Day=0, Surf_lat=-2.5, Surf_lon=-2.5).item() == 200
 
-    assert ds["Dust_mean"].sel(Day=1, level=0, Profile_lat=7.5, Profile_lon=7.5).item() == 2
-    assert ds["Dust_mean"].sel(Day=1, level=1, Profile_lat=7.5, Profile_lon=7.5).item() == 3
-    assert ds["Dust_mean"].sel(Day=0, level=0, Profile_lat=-2.5, Profile_lon=-2.5).item() == 6
-    assert ds["Dust_mean"].sel(Day=0, level=1, Profile_lat=-2.5, Profile_lon=-2.5).item() == 7
+    assert (
+        ds["Dust_mean"].sel(Day=1, level=0, Profile_lat=7.5, Profile_lon=7.5).item()
+        == 2
+    )
+    assert (
+        ds["Dust_mean"].sel(Day=1, level=1, Profile_lat=7.5, Profile_lon=7.5).item()
+        == 3
+    )
+    assert (
+        ds["Dust_mean"].sel(Day=0, level=0, Profile_lat=-2.5, Profile_lon=-2.5).item()
+        == 6
+    )
+    assert (
+        ds["Dust_mean"].sel(Day=0, level=1, Profile_lat=-2.5, Profile_lon=-2.5).item()
+        == 7
+    )
 
     assert int(ds["MY"].item()) == 30
     assert ds["Ls"].item() == ls_bin[0].midpoint

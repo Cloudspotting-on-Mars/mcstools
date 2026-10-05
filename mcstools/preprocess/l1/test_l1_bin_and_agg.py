@@ -18,8 +18,8 @@ class FakeL1BLoader:
 
 
 class GapAwareFakeL1BLoader:
-    """Returns real data only for the Ls bin starting at `data_ls_start`; empty otherwise -
-    simulates a data gap (e.g. no files found) for every other Ls bin."""
+    """Returns real data only for the Ls bin starting at `data_ls_start`; empty
+    otherwise - simulates a data gap (e.g. no files found) for every other Ls bin."""
 
     def __init__(self, l1b_df, data_ls_start):
         self.l1b_df = l1b_df
@@ -32,7 +32,7 @@ class GapAwareFakeL1BLoader:
 
 
 class IdentityViewPipeline:
-    """Stand-in for L1BStandardInTrack - the synthetic data is already 'preprocessed'."""
+    """Stand-in for L1BStandardInTrack - the data is already 'preprocessed'."""
 
     def preprocess(self, df):
         return df
@@ -40,13 +40,15 @@ class IdentityViewPipeline:
 
 def make_l1b_df(rows):
     """rows: list of dicts with keys lat, lon, ltst, rad1, rad2."""
-    return pd.DataFrame({
-        "Scene_lat": [r["lat"] for r in rows],
-        "Scene_lon": [r["lon"] for r in rows],
-        "LTST": [r["ltst"] for r in rows],
-        "Rad_A1_01": [r["rad1"] for r in rows],
-        "Rad_A2_02": [r["rad2"] for r in rows],
-    })
+    return pd.DataFrame(
+        {
+            "Scene_lat": [r["lat"] for r in rows],
+            "Scene_lon": [r["lon"] for r in rows],
+            "LTST": [r["ltst"] for r in rows],
+            "Rad_A1_01": [r["rad1"] for r in rows],
+            "Rad_A2_02": [r["rad2"] for r in rows],
+        }
+    )
 
 
 DAY_ROWS = [
@@ -67,8 +69,12 @@ def run(rows, my=30, ls_bin=None, **kwargs):
     ls_bin = ls_bin or BinGrid(0, 5, 5, "Ls")
     kwargs = {**LAT_BINS_KWARGS, **kwargs}
     return load_and_aggregate_single_ls_bin(
-        loader, pipeline, my, ls_bin[0],
-        BinGrid(-90, 90, 10, "Scene_lat"), BinGrid(-180, 180, 10, "Scene_lon"),
+        loader,
+        pipeline,
+        my,
+        ls_bin[0],
+        BinGrid(-90, 90, 10, "Scene_lat"),
+        BinGrid(-180, 180, 10, "Scene_lon"),
         **kwargs,
     )
 
@@ -134,7 +140,10 @@ def test_main_fills_ls_gap_with_nan_instead_of_dropping_it():
     )
 
     assert list(ds["Ls"].values) == [2.5, 7.5]
-    assert ds["Rad_A1_01_mean"].sel(Ls=2.5, Day=1, Scene_lat=5.0, Scene_lon=5.0).item() == 15
+    assert (
+        ds["Rad_A1_01_mean"].sel(Ls=2.5, Day=1, Scene_lat=5.0, Scene_lon=5.0).item()
+        == 15
+    )
     assert np.isnan(ds["Rad_A1_01_mean"].sel(Ls=7.5)).all()
 
 
@@ -144,7 +153,6 @@ def test_main_fills_my_gap_with_nan_instead_of_dropping_it():
         "Scene_lat": BinGrid(-90, 90, 10, "Scene_lat"),
         "Scene_lon": BinGrid(-180, 180, 10, "Scene_lon"),
     }
-    loader = GapAwareFakeL1BLoader(make_l1b_df(DAY_ROWS), data_ls_start=0)
     pipeline = IdentityViewPipeline()
 
     class PerMyLoader(GapAwareFakeL1BLoader):
@@ -164,5 +172,8 @@ def test_main_fills_my_gap_with_nan_instead_of_dropping_it():
     )
 
     assert list(ds["MY"].values) == [29, 30]
-    assert ds["Rad_A1_01_mean"].sel(MY=30, Day=1, Scene_lat=5.0, Scene_lon=5.0).item() == 15
+    assert (
+        ds["Rad_A1_01_mean"].sel(MY=30, Day=1, Scene_lat=5.0, Scene_lon=5.0).item()
+        == 15
+    )
     assert np.isnan(ds["Rad_A1_01_mean"].sel(MY=29)).all()
