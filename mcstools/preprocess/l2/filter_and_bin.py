@@ -81,7 +81,7 @@ def generate_filter_config_from_location_and_bins(
 
 
 def filter_ddr1_df_from_config(
-    ddr1_df: pd.DataFrame, filter_config: dict
+    ddr1_df: pd.DataFrame, filter_config: dict, verbose=False
 ) -> pd.DataFrame:
     """
     Filter DDR1 data from a config dictionary, where config gives:
@@ -102,14 +102,20 @@ def filter_ddr1_df_from_config(
     for field, vals in filter_config.items():
         # Select rows within range for tuple
         if type(vals) in [tuple]:
-            print(f"Filtering {field} to within {vals}.")
-            ddr1_df = ddr1_df[ddr1_df[field].between(*vals)]
+            if verbose:
+                print(f"Filtering {field} to within {vals}.")
+            if vals[1] >= vals[0]:
+                ddr1_df = ddr1_df[ddr1_df[field].between(*vals)]
+            else:
+                ddr1_df = ddr1_df[~ddr1_df[field].between(vals[1], vals[0])]
         # Select rows with corresponding flags for list
         if type(vals) in [list]:
-            print(f"Selecting rows with {field} in {vals}.")
+            if verbose:
+                print(f"Selecting rows with {field} in {vals}.")
             ddr1_df = ddr1_df[ddr1_df[field].isin(vals)]
         if ddr1_df.empty:
-            print("No profiles left after filtering")
+            if verbose:
+                print("No profiles left after filtering")
             break
     return ddr1_df
 

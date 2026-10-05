@@ -28,20 +28,27 @@ class L1BLoader:
     def load(self, files, add_cols: list = None, **kwargs):
         if not isinstance(files, (list, np.ndarray, pd.Series)):
             return self.reader.read(files, add_cols=add_cols, **kwargs)
-        elif len(files) == 0:
-            df = pd.DataFrame(columns=self.columns)
+        # output_columns (not just columns) since read() always adds Solar_dist/L_sub_s
+        # from the file header - load_ls_range filters on L_sub_s even with no add_cols.
+        empty_df_cols = self.reader.output_columns + (add_cols or [])
+        if len(files) == 0:
+            df = pd.DataFrame(columns=empty_df_cols)
         else:
             pieces = []
             for f in sorted(files):
                 try:
                     fdf = self.reader.read(f, add_cols=add_cols, **kwargs)
-                except LookupError as error:
+                except (LookupError, FileNotFoundError) as error:
                     logger.error(error)
-                except FileNotFoundError as error:
-                    logger.error(error, "\nIgnoring.")
                     continue
                 pieces.append(fdf)
-            df = pd.concat(pieces)
+            # No files actually existed/were readable (e.g. a data gap) - don't crash,
+            # just report an empty result like the len(files) == 0 case above.
+            df = (
+                pd.concat(pieces)
+                if len(pieces) > 0
+                else pd.DataFrame(columns=empty_df_cols)
+            )
         return df
 
     def load_date_range(self, start_time, end_time, add_cols=["dt"], **kwargs):
@@ -310,18 +317,20 @@ class L2Loader:
         add_cols: additional columns to generate and add ["dt"]
         verbose: output log details
         """
-        if isinstance(datetimes, pd.Series):
+        if isinstance(datetimes, list):
             pass
-        elif isinstance(datetimes, list):
-            datetimes = pd.Series(datetimes)
+        elif isinstance(datetimes, pd.Series):
+            datetimes = datetimes.to_list()
         else:
             raise NotImplementedError(
                 f"Loading from {type(datetimes)} not implemented."
             )
-        filestrs = datetimes.apply(self.filename_builder.handler.convert_dt_to_filestr)
-        files = filestrs.apply(
-            self.filename_builder.make_filename_from_filestr
-        ).unique()
+        filestrs = [
+            self.filename_builder.handler.convert_dt_to_filestr(t) for t in datetimes
+        ]
+        files = list(
+            set([self.filename_builder.make_filename_from_filestr(f) for f in filestrs])
+        )
         return self.load(ddr, files, verbose=verbose, **kwargs)
 
     def load_ls_range(
