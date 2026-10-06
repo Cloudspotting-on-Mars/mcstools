@@ -57,5 +57,18 @@ To preprocess L1B data and reduce to standard in-track limb views:
 ```python
 from mcstools.preprocess.l1b import L1BStandardInTrack
 preprocesser = L1BStandardInTrack()
-df = preprocesser.process(df)
+df = preprocesser.preprocess(df)
 ```
+
+#### Bin and aggregate L1B/L2 data
+`mcstools.preprocess.l1.bin_and_agg` and `mcstools.preprocess.l2.bin_and_agg` load data in
+Ls (solar longitude) chunks, split it into day/night, spatially bin it, and aggregate it
+into a single netCDF-ready `xarray.Dataset`. Run from the command line:
+```bash
+python -m mcstools.preprocess.l1.bin_and_agg --output-path out/l1b_binned.nc
+python -m mcstools.preprocess.l2.bin_and_agg --output-path out/l2_binned.nc
+```
+Both also take `--exclude-times-file`/`--exclude-threshold-seconds` to drop data within
+some time window of known-bad timestamps before binning. See
+[mcstools/preprocess/README.md](mcstools/preprocess/README.md) for full details on bin/filter
+configuration and the exclusion file format.
