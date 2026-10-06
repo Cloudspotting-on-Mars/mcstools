@@ -247,9 +247,11 @@ def main(
 @click.command()
 @click.option("--output-path")
 @exclude_times_click_options
-def main_cli(output_path, exclude_times_file, exclude_threshold_seconds):
+def main_cli(
+    output_path, exclude_times_file, exclude_threshold_seconds, exclude_times_column
+):
     excluded_times = resolve_excluded_times(
-        exclude_times_file, exclude_threshold_seconds
+        exclude_times_file, exclude_threshold_seconds, exclude_times_column
     )
     results = main(
         excluded_times=excluded_times, exclude_threshold_s=exclude_threshold_seconds

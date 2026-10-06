@@ -38,10 +38,18 @@ def exclude_times_click_options(f):
         help="+/- window (seconds) around each excluded timestamp to drop "
         "[required if --exclude-times-file is given]",
     )(f)
+    f = click.option(
+        "--exclude-times-column",
+        type=str,
+        default="timestamp",
+        help="Name of the CSV column holding timestamps [default: timestamp]",
+    )(f)
     return f
 
 
-def resolve_excluded_times(exclude_times_file, exclude_threshold_seconds):
+def resolve_excluded_times(
+    exclude_times_file, exclude_threshold_seconds, exclude_times_column="timestamp"
+):
     """
     Validate and load the options added by `exclude_times_click_options` into an
     excluded_times Series (or None if no file was given). Raises a click.UsageError
@@ -55,7 +63,7 @@ def resolve_excluded_times(exclude_times_file, exclude_threshold_seconds):
         raise click.UsageError(
             "--exclude-threshold-seconds is required when --exclude-times-file is given"
         )
-    return load_excluded_times(exclude_times_file)
+    return load_excluded_times(exclude_times_file, excluded_dt_col=exclude_times_column)
 
 
 def makedirs(output_path):

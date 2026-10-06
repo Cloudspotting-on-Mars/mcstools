@@ -72,22 +72,29 @@ Pass `ddr2_agg_columns=None` to skip DDR2 entirely and only bin DDR1.
 
 ## Excluding known-bad time windows
 
-Both scripts take `--exclude-times-file`/`--exclude-threshold-seconds` to drop data
-within some window of known-bad timestamps (e.g. instrument anomalies or calibration
-events) before it's binned:
+Both scripts take `--exclude-times-file`/`--exclude-threshold-seconds`/`--exclude-times-column`
+to drop data within some window of known-bad timestamps (e.g. instrument anomalies or
+calibration events) before it's binned:
 ```bash
 python -m mcstools.preprocess.l1.bin_and_agg \
     --exclude-times-file bad_times.csv --exclude-threshold-seconds 30 \
     --output-path out/l1b_binned.nc
 ```
 
-`bad_times.csv` needs a `timestamp` column, one per row, ISO-8601 and UTC (sub-second
-precision not required):
+`bad_times.csv` needs a timestamp column with one timestamp per row, ISO-8601 and UTC
+(sub-second precision not required). By default the column must be named `timestamp`:
 ```csv
 timestamp
 2018-04-18 06:12:00
 2018-11-02 23:45:10
 ```
+Use `--exclude-times-column` to specify a different column name:
+```bash
+python -m mcstools.preprocess.l1.bin_and_agg \
+    --exclude-times-file bad_events.csv --exclude-times-column event_time \
+    --exclude-threshold-seconds 30 --output-path out/l1b_binned.nc
+```
+
 `--exclude-threshold-seconds` is required whenever `--exclude-times-file` is given; any
 row whose timestamp falls within that +/- window of any listed timestamp is dropped.
 
@@ -102,7 +109,11 @@ From Python, pass an already-loaded set of timestamps instead of a file path:
 from mcstools.preprocess.exclude import load_excluded_times
 from mcstools.preprocess.l1.bin_and_agg import main
 
+# Default column name "timestamp"
 excluded_times = load_excluded_times("bad_times.csv")
+# Or specify a custom column name
+excluded_times = load_excluded_times("bad_events.csv", excluded_dt_col="event_time")
+
 ds = main(excluded_times=excluded_times, exclude_threshold_s=30)
 ```
 

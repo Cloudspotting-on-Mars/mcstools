@@ -68,7 +68,7 @@ into a single netCDF-ready `xarray.Dataset`. Run from the command line:
 python -m mcstools.preprocess.l1.bin_and_agg --output-path out/l1b_binned.nc
 python -m mcstools.preprocess.l2.bin_and_agg --output-path out/l2_binned.nc
 ```
-Both also take `--exclude-times-file`/`--exclude-threshold-seconds` to drop data within
-some time window of known-bad timestamps before binning. See
+Both also take `--exclude-times-file`/`--exclude-threshold-seconds`/`--exclude-times-column`
+to drop data within some time window of known-bad timestamps before binning. See
 [mcstools/preprocess/README.md](mcstools/preprocess/README.md) for full details on bin/filter
 configuration and the exclusion file format.
