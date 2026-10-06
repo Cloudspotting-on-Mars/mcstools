@@ -39,7 +39,7 @@ class IdentityViewPipeline:
 
 
 def make_l1b_df(rows):
-    """rows: list of dicts with keys lat, lon, ltst, rad1, rad2."""
+    """rows: list of dicts with keys lat, lon, ltst, rad1, rad2, dt."""
     return pd.DataFrame(
         {
             "Scene_lat": [r["lat"] for r in rows],
@@ -47,17 +47,46 @@ def make_l1b_df(rows):
             "LTST": [r["ltst"] for r in rows],
             "Rad_A1_01": [r["rad1"] for r in rows],
             "Rad_A2_02": [r["rad2"] for r in rows],
+            "dt": pd.to_datetime([r["dt"] for r in rows], utc=True),
         }
     )
 
 
 DAY_ROWS = [
-    {"lat": 5, "lon": 5, "ltst": 12, "rad1": 10, "rad2": 100},
-    {"lat": 5, "lon": 5, "ltst": 13, "rad1": 20, "rad2": 200},
+    {
+        "lat": 5,
+        "lon": 5,
+        "ltst": 12,
+        "rad1": 10,
+        "rad2": 100,
+        "dt": "2020-01-01 12:00:00",
+    },
+    {
+        "lat": 5,
+        "lon": 5,
+        "ltst": 13,
+        "rad1": 20,
+        "rad2": 200,
+        "dt": "2020-01-01 13:00:00",
+    },
 ]
 NIGHT_ROWS = [
-    {"lat": -5, "lon": -5, "ltst": 0, "rad1": 30, "rad2": 300},
-    {"lat": -5, "lon": -5, "ltst": 23, "rad1": 40, "rad2": 400},
+    {
+        "lat": -5,
+        "lon": -5,
+        "ltst": 0,
+        "rad1": 30,
+        "rad2": 300,
+        "dt": "2020-01-01 00:00:00",
+    },
+    {
+        "lat": -5,
+        "lon": -5,
+        "ltst": 23,
+        "rad1": 40,
+        "rad2": 400,
+        "dt": "2020-01-01 23:00:00",
+    },
 ]
 
 LAT_BINS_KWARGS = dict(agg_columns=RAD_COLUMNS, stats=["mean", "count"])
@@ -96,6 +125,25 @@ def test_day_only_data_has_single_day_value():
 def test_returns_none_when_load_is_empty():
     ds = run([])
     assert ds is None
+
+
+def test_excludes_rows_near_excluded_times():
+    excluded_times = pd.to_datetime(["2020-01-01 13:00:00"], utc=True)
+
+    ds = run(
+        DAY_ROWS,
+        excluded_times=excluded_times,
+        exclude_threshold_s=60,
+    )
+
+    # only the 12:00:00 row survives; the 13:00:00 row is within threshold of excluded
+    assert ds["Rad_A1_01_mean"].sel(Day=1, Scene_lat=5.0, Scene_lon=5.0).item() == 10
+    assert ds["Rad_A1_01_count"].sel(Day=1, Scene_lat=5.0, Scene_lon=5.0).item() == 1
+
+
+def test_excluded_times_none_behaves_as_before():
+    ds = run(DAY_ROWS, excluded_times=None)
+    assert ds["Rad_A1_01_mean"].sel(Day=1, Scene_lat=5.0, Scene_lon=5.0).item() == 15
 
 
 def test_main_includes_every_mars_year():

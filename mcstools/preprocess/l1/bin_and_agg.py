@@ -27,7 +27,12 @@ from mcstools import L1BLoader
 from mcstools.mcsfile import L1BFile
 from mcstools.preprocess import L1BStandardInTrack
 from mcstools.preprocess.bin import Bin, BinGrid, compute_bin_stats_2d
-from mcstools.util.io import makedirs
+from mcstools.preprocess.exclude import filter_excluded_times
+from mcstools.util.io import (
+    exclude_times_click_options,
+    makedirs,
+    resolve_excluded_times,
+)
 from mcstools.util.log import logger, setup_logging
 
 MY_DEFAULT = [29, 30, 31, 32, 33, 34, 35, 36]
@@ -78,6 +83,8 @@ def load_and_aggregate_single_ls_bin(
     lon_bins: BinGrid,
     agg_columns=AGG_COLUMNS,
     stats=AGG_STATS,
+    excluded_times=None,
+    exclude_threshold_s=None,
     verbose=False,
 ):
     """
@@ -96,6 +103,11 @@ def load_and_aggregate_single_ls_bin(
     # LTST is added here by view_pipeline.preprocess (not by the loader) - see module
     # docstring.
     l1b_df = view_pipeline.preprocess(l1b_df)
+    if l1b_df.empty:
+        return None
+    # Excluding here (post-average) matches against each limb sequence's averaged dt,
+    # rather than its individual raw readings.
+    l1b_df = filter_excluded_times(l1b_df, excluded_times, exclude_threshold_s)
     if l1b_df.empty:
         return None
     day_cond = l1b_df["LTST"].between(*DAY_LTST_RANGE)
@@ -123,6 +135,8 @@ def main(
     bin_config=BIN_CONFIG_DEFAULT,
     agg_columns=AGG_COLUMNS,
     stats=AGG_STATS,
+    excluded_times=None,
+    exclude_threshold_s=None,
     n_jobs=DEFAULT_N_JOBS,
     verbose=True,
 ):
@@ -141,6 +155,8 @@ def main(
                     bin_config["Scene_lon"],
                     agg_columns=agg_columns,
                     stats=stats,
+                    excluded_times=excluded_times,
+                    exclude_threshold_s=exclude_threshold_s,
                     verbose=verbose,
                 )
                 for ls_i in range(len(bin_config["Ls"]))
@@ -164,8 +180,14 @@ def main(
 
 @click.command()
 @click.option("--output-path")
-def main_cli(output_path):
-    results = main()
+@exclude_times_click_options
+def main_cli(output_path, exclude_times_file, exclude_threshold_seconds):
+    excluded_times = resolve_excluded_times(
+        exclude_times_file, exclude_threshold_seconds
+    )
+    results = main(
+        excluded_times=excluded_times, exclude_threshold_s=exclude_threshold_seconds
+    )
     if output_path:
         logger.info(f"Saving to {output_path}.")
         makedirs(output_path)
