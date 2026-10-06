@@ -16,7 +16,7 @@ class FakeL2Loader:
         self.ddr1_df = ddr1_df
         self.ddr2_df = ddr2_df
 
-    def load_ls_range(self, start, end, ddr="DDR1", verbose=False):
+    def load_ls_range(self, start, end, ddr="DDR1", add_cols=None, verbose=False):
         assert ddr == "DDR1"
         return self.ddr1_df.copy()
 
@@ -37,7 +37,7 @@ class FakeL2Loader:
 
 def make_ddr1_df(profiles):
     """profiles: list of dicts with keys Profile_identifier, lat, lon, ltst, dust,
-    t_surf."""
+    t_surf, dt."""
     return pd.DataFrame(
         {
             "Profile_identifier": [p["Profile_identifier"] for p in profiles],
@@ -51,6 +51,7 @@ def make_ddr1_df(profiles):
             "Obs_qual": [0] * len(profiles),
             "Gqual": [0] * len(profiles),
             "1": [0] * len(profiles),
+            "dt": pd.to_datetime([p["dt"] for p in profiles], utc=True),
         }
     )
 
@@ -82,6 +83,7 @@ DAY_PROFILES = [
         "ltst": 0.5,
         "dust": 10,
         "t_surf": 200,
+        "dt": "2020-01-01 12:00:00",
         "levels": [(100, 1, 10, 5), (200, 2, 20, 15)],
     },
     {
@@ -91,6 +93,7 @@ DAY_PROFILES = [
         "ltst": 0.55,
         "dust": 20,
         "t_surf": 220,
+        "dt": "2020-01-01 13:00:00",
         "levels": [(100, 3, 30, 25), (200, 4, 40, 35)],
     },
 ]
@@ -102,6 +105,7 @@ NIGHT_PROFILES = [
         "ltst": 0.0,
         "dust": 100,
         "t_surf": 150,
+        "dt": "2020-01-01 00:00:00",
         "levels": [(100, 5, 50, 45), (200, 6, 60, 55)],
     },
     {
@@ -111,6 +115,7 @@ NIGHT_PROFILES = [
         "ltst": 0.95,
         "dust": 300,
         "t_surf": 250,
+        "dt": "2020-01-01 23:00:00",
         "levels": [(100, 7, 70, 65), (200, 8, 80, 75)],
     },
 ]
@@ -173,6 +178,32 @@ def test_day_only_data_has_single_day_value():
     ds = load_and_aggregate_single_ls_chunk(loader, 30, ls_bin, 0, **COMMON_KWARGS)
 
     assert list(ds["Day"].values) == [1]
+
+
+def test_excludes_profiles_near_excluded_times():
+    loader = make_loader(DAY_PROFILES)
+    ls_bin = BinGrid(0, 15, 15, "Ls")
+    excluded_times = pd.to_datetime(["2020-01-01 13:00:00"], utc=True)
+    kwargs = dict(COMMON_KWARGS)
+    kwargs["excluded_times"] = excluded_times
+    kwargs["exclude_threshold_s"] = 60
+
+    ds = load_and_aggregate_single_ls_chunk(loader, 30, ls_bin, 0, **kwargs)
+
+    # D2 (dt=13:00:00) is excluded; only D1 (dust=10) remains
+    assert ds["Dust_column_mean"].sel(Day=1, Surf_lat=7.5, Surf_lon=7.5).item() == 10
+    assert ds["Dust_column_count"].sel(Day=1, Surf_lat=7.5, Surf_lon=7.5).item() == 1
+
+
+def test_excluded_times_none_behaves_as_before():
+    loader = make_loader(DAY_PROFILES)
+    ls_bin = BinGrid(0, 15, 15, "Ls")
+    kwargs = dict(COMMON_KWARGS)
+    kwargs["excluded_times"] = None
+
+    ds = load_and_aggregate_single_ls_chunk(loader, 30, ls_bin, 0, **kwargs)
+
+    assert ds["Dust_column_mean"].sel(Day=1, Surf_lat=7.5, Surf_lon=7.5).item() == 15
 
 
 def test_returns_none_when_filter_empties_chunk():

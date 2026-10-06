@@ -30,8 +30,13 @@ from mars_time import MarsTime
 
 from mcstools import L2Loader
 from mcstools.preprocess.bin import BinGrid, compute_bin_stats_2d
+from mcstools.preprocess.exclude import filter_excluded_times
 from mcstools.preprocess.l2.filter_and_bin import filter_ddr1_df_from_config
-from mcstools.util.io import makedirs
+from mcstools.util.io import (
+    exclude_times_click_options,
+    makedirs,
+    resolve_excluded_times,
+)
 
 MY_DEFAULT = list(range(29, 30))
 BIN_CONFIG_DEFAULT = {
@@ -64,6 +69,9 @@ def load_ddr1_ls_chunk(loader, my, ls_bin_start, ls_bin_end):
         MarsTime.from_solar_longitude(my, ls_bin_start),
         MarsTime.from_solar_longitude(my, ls_bin_end),
         ddr="DDR1",
+        # dt is otherwise dropped by load_ls_range unless explicitly requested -
+        # needed here so excluded-time filtering can match against it.
+        add_cols=["dt"],
         verbose=False,
     )
 
@@ -132,6 +140,8 @@ def load_and_aggregate_single_ls_chunk(
     ddr2_agg_columns=List[str] | None,
     ddr2_lat_bin=BinGrid | None,
     ddr2_lon_bin=BinGrid | None,
+    excluded_times=None,
+    exclude_threshold_s=None,
     verbose=False,
 ):
     """
@@ -143,6 +153,9 @@ def load_and_aggregate_single_ls_chunk(
     print(f"Processing MY{my} {single_ls_bin.midpoint} on PID: {os.getpid()}")
     ddr1_df = load_ddr1_ls_chunk(loader, my, single_ls_bin.start, single_ls_bin.stop)
     ddr1_df = filter_ddr1_df_from_config(ddr1_df, filter_config, verbose=verbose)
+    if ddr1_df.empty:
+        return None
+    ddr1_df = filter_excluded_times(ddr1_df, excluded_times, exclude_threshold_s)
     if ddr1_df.empty:
         return None
     day_cond = ddr1_df["LTST"].between(*DAY_LTST_RANGE)
@@ -185,6 +198,8 @@ def main(
     ddr2_agg_columns: List = DDR2_AGG_DEFAULT,
     ddr2_lat_bin_col: str = DDR2_LAT_BIN_COL,
     ddr2_lon_bin_col: str = DDR2_LON_BIN_COL,
+    excluded_times=None,
+    exclude_threshold_s=None,
     n_jobs=DEFAULT_N_JOBS,
     verbose=False,
 ):
@@ -207,6 +222,8 @@ def main(
                     ddr2_agg_columns=ddr2_agg_columns,
                     ddr2_lat_bin=bin_config[ddr2_lat_bin_col],
                     ddr2_lon_bin=bin_config[ddr2_lon_bin_col],
+                    excluded_times=excluded_times,
+                    exclude_threshold_s=exclude_threshold_s,
                     verbose=verbose,
                 )
                 for ls_index in range(len(bin_config["Ls"]))
@@ -229,8 +246,16 @@ def main(
 
 @click.command()
 @click.option("--output-path")
-def main_cli(output_path):
-    results = main()
+@exclude_times_click_options
+def main_cli(
+    output_path, exclude_times_file, exclude_threshold_seconds, exclude_times_column
+):
+    excluded_times = resolve_excluded_times(
+        exclude_times_file, exclude_threshold_seconds, exclude_times_column
+    )
+    results = main(
+        excluded_times=excluded_times, exclude_threshold_s=exclude_threshold_seconds
+    )
     makedirs(output_path)
     results.to_netcdf(output_path, engine="netcdf4")
 
