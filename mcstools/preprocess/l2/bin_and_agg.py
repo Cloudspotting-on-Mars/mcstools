@@ -40,7 +40,7 @@ from mcstools.util.io import (
 
 MY_DEFAULT = list(range(29, 30))
 BIN_CONFIG_DEFAULT = {
-    "Ls": BinGrid(0, 140, 15, "Ls"),
+    "Ls": BinGrid(0, 140, 5, "Ls"),
     "Surf_lat": BinGrid(-90, 90, 5, "Surf_lat"),
     "Surf_lon": BinGrid(-180, 180, 5, "Surf_lon"),
     "Profile_lat": BinGrid(-90, 90, 5, "Profile_lat"),
