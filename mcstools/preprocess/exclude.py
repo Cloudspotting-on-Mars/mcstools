@@ -15,7 +15,7 @@ def load_excluded_times(path, excluded_dt_col="timestamp") -> pd.Series:
     if excluded_dt_col not in df.columns:
         raise ValueError(f"{path} must have a '{excluded_dt_col}' column")
     return (
-        pd.to_datetime(df[excluded_dt_col], utc=True)
+        pd.to_datetime(df[excluded_dt_col],format="mixed", utc=True)
         .sort_values()
         .reset_index(drop=True)
     )
